@@ -13,7 +13,8 @@ export const ProductsAdmin = () => {
   const [showForm, setShowForm] = useState(false);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [form, setForm] = useState<Partial<Product>>({
-    name: '', price: 0, stock: 0, category: 'perfume', shortDescription: '', description: '', featured: false,
+    name: '', price: 0, comparePrice: 0, stock: 0, category: 'perfume',
+    shortDescription: '', description: '', featured: false,
     sku: '', tags: [], images: []
   });
 
@@ -35,25 +36,27 @@ export const ProductsAdmin = () => {
 
   const persist = (list: Product[]) => {
     localStorage.setItem('tcv_admin_products', JSON.stringify(list));
-    // Also update main product list that appears on site by updating localStorage that Shop reads? For demo we keep separate, but we sync to tcv_products
     localStorage.setItem('tcv_products', JSON.stringify(list));
   };
 
   const handleSave = () => {
     if (!form.name) return alert('Name required');
-    const finalImages = form.images && form.images.length > 0 
-      ? form.images 
+    const finalImages = form.images && form.images.length > 0
+      ? form.images
       : [{ url: `https://picsum.photos/seed/${Date.now()}/600/800`, alt: form.name!, isMain: true }];
 
+    const comparePrice = Number(form.comparePrice) || 0;
+
     const newProduct: Product = {
-      id: editing?.id || Math.random().toString(36).slice(2,9),
+      id: editing?.id || Math.random().toString(36).slice(2, 9),
       sku: form.sku || `SKU-${Date.now()}`,
       name: form.name!,
-      slug: form.name!.toLowerCase().replace(/\s+/g,'-'),
+      slug: form.name!.toLowerCase().replace(/\s+/g, '-'),
       description: form.description || '',
       shortDescription: form.shortDescription || '',
       category: (form.category as any) || 'perfume',
       price: Number(form.price) || 0,
+      comparePrice: comparePrice > 0 ? comparePrice : undefined,
       stock: Number(form.stock) || 0,
       images: finalImages,
       tags: form.tags || [],
@@ -65,7 +68,7 @@ export const ProductsAdmin = () => {
       updatedAt: new Date().toISOString(),
     };
     let list;
-    if (editing) list = products.map(p=>p.id===editing.id?{...newProduct, id: editing.id}:p);
+    if (editing) list = products.map(p => p.id === editing.id ? { ...newProduct, id: editing.id } : p);
     else list = [newProduct, ...products];
     setProducts(list);
     persist(list);
@@ -75,60 +78,92 @@ export const ProductsAdmin = () => {
 
   const handleDelete = (id: string) => {
     if (!confirm('Delete product?')) return;
-    const list = products.filter(p=>p.id!==id);
+    const list = products.filter(p => p.id !== id);
     setProducts(list);
     persist(list);
   };
 
+  const openAdd = () => {
+    setEditing(null);
+    setForm({ name: '', price: 0, comparePrice: 0, stock: 10, category: 'perfume', shortDescription: '', description: '', featured: false, sku: '', tags: [], images: [] });
+    setShowForm(true);
+  };
+
+  const openEdit = (p: Product) => {
+    setEditing(p);
+    setForm({ ...p, comparePrice: p.comparePrice || 0 });
+    setShowForm(true);
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-[28px]">Manage Products — {products.length}</h1>
-        <button onClick={()=>{setEditing(null); setForm({name:'',price:0,stock:10,category:'perfume',shortDescription:'',description:'',featured:false,sku:'',tags:[],images:[]}); setShowForm(true);}} className="bg-black text-white px-5 py-2.5 text-[11px] tracking-widest uppercase flex items-center gap-2"><Plus size={14}/>Add Product</button>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="font-display text-[24px] md:text-[28px]">Manage Products — {products.length}</h1>
+        <button
+          onClick={openAdd}
+          className="bg-black text-white px-5 py-2.5 text-[11px] tracking-widest uppercase flex items-center gap-2 hover:bg-gray-800 transition-colors"
+        >
+          <Plus size={14} />Add Product
+        </button>
       </div>
 
       {showForm && (
-        <div className="bg-white border p-6 mt-6 grid md:grid-cols-2 gap-4">
-          <h3 className="md:col-span-2 font-display text-lg">{editing?'Edit Product':'Add New Product — Firebase Storage Ready'}</h3>
+        <div className="bg-white border p-4 md:p-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h3 className="md:col-span-2 font-display text-lg">{editing ? 'Edit Product' : 'Add New Product'}</h3>
+
           <div>
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Product Name</label>
-            <input placeholder="Product Name (e.g. Noir, Aqua)" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="border px-4 py-2.5 text-[13px] w-full" />
+            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Product Name *</label>
+            <input placeholder="e.g. Noir Oud, Rose Luxe" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
           </div>
           <div>
             <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">SKU Code</label>
-            <input placeholder="SKU Code (e.g. TCV-NOIR-01)" value={form.sku} onChange={e=>setForm({...form,sku:e.target.value})} className="border px-4 py-2.5 text-[13px] w-full" />
+            <input placeholder="e.g. TCV-NOIR-01" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
+          </div>
+
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Price (PKR) *</label>
+            <input type="number" placeholder="e.g. 5450" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
           </div>
           <div>
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Price (PKR)</label>
-            <input type="number" placeholder="Price in PKR (e.g. 5450)" value={form.price} onChange={e=>setForm({...form,price:Number(e.target.value)})} className="border px-4 py-2.5 text-[13px] w-full" />
+            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Cut / Compare Price (PKR)</label>
+            <input type="number" placeholder="Original price shown crossed out (e.g. 7500)" value={form.comparePrice || ''} onChange={e => setForm({ ...form, comparePrice: Number(e.target.value) })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
+            <p className="text-[10px] opacity-50 mt-1">Leave 0 to not show a cut price</p>
           </div>
+
           <div>
             <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Stock Quantity</label>
-            <input type="number" placeholder="Available Stock (e.g. 100)" value={form.stock} onChange={e=>setForm({...form,stock:Number(e.target.value)})} className="border px-4 py-2.5 text-[13px] w-full" />
+            <input type="number" placeholder="e.g. 100" value={form.stock || ''} onChange={e => setForm({ ...form, stock: Number(e.target.value) })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
           </div>
           <div>
             <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Category</label>
-            <select value={form.category} onChange={e=>setForm({...form,category:e.target.value as any})} className="border px-4 py-2.5 text-[13px] w-full">
-              <option value="perfume">Perfume</option><option value="bags">Bags</option><option value="jewellery">Jewellery</option><option value="watches">Watches</option>
+            <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value as any })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black bg-white">
+              <option value="perfume">Perfume</option>
+              <option value="bags">Bags</option>
+              <option value="jewellery">Jewellery</option>
+              <option value="watches">Watches</option>
             </select>
           </div>
+
           <div className="flex items-center pt-6">
-            <label className="flex items-center gap-2 text-[12px]"><input type="checkbox" checked={!!form.featured} onChange={e=>setForm({...form,featured:e.target.checked})} /> Featured Product</label>
+            <label className="flex items-center gap-2 text-[12px] cursor-pointer">
+              <input type="checkbox" checked={!!form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} />
+              Featured Product (shows on homepage)
+            </label>
           </div>
           <div className="md:col-span-2">
             <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Short Description</label>
-            <input placeholder="Short Description (Appears on product cards)" value={form.shortDescription} onChange={e=>setForm({...form,shortDescription:e.target.value})} className="border px-4 py-2.5 text-[13px] w-full" />
+            <input placeholder="Short tagline (shown on product cards)" value={form.shortDescription} onChange={e => setForm({ ...form, shortDescription: e.target.value })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
           </div>
           <div className="md:col-span-2">
             <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Full Description</label>
-            <textarea placeholder="Full Product Description (Features, notes, and details...)" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} className="border px-4 py-2.5 text-[13px] w-full" rows={3} />
+            <textarea placeholder="Full product details, features, scent notes..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" rows={3} />
           </div>
-          
+
           <div className="md:col-span-2">
-            <label className="block text-[12px] mb-1 opacity-70">Product Images (URLs)</label>
+            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Product Images (Paste URLs)</label>
             <div className="flex gap-2 mb-2">
-              <input placeholder="Paste Image URL here..." value={newImageUrl} onChange={e=>setNewImageUrl(e.target.value)} onKeyDown={e=>{if(e.key==='Enter') addImage();}} className="border px-4 py-2.5 text-[13px] flex-1" />
-              <button onClick={addImage} className="bg-black text-white px-5 py-2 text-[11px] uppercase tracking-widest">Add</button>
+              <input placeholder="Paste image URL and press Add..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addImage(); }} className="border px-4 py-2.5 text-[13px] flex-1 focus:outline-none focus:border-black" />
+              <button onClick={addImage} className="bg-black text-white px-5 py-2 text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-colors shrink-0">Add</button>
             </div>
             <div className="flex gap-3 flex-wrap mt-3">
               {(form.images || []).map((img, i) => (
@@ -141,35 +176,58 @@ export const ProductsAdmin = () => {
             </div>
           </div>
 
-          <div className="md:col-span-2 flex gap-2 mt-4">
+          <div className="md:col-span-2 flex flex-wrap gap-2 mt-4">
             <button onClick={handleSave} className="bg-black text-white px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-800 transition-colors">Save Product</button>
-            <button onClick={()=>setShowForm(false)} className="border px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-50 transition-colors">Cancel</button>
-            <span className="ml-auto flex items-center gap-2 text-[11px] opacity-50"><Upload size={14}/> Support Multiple Images</span>
+            <button onClick={() => { setShowForm(false); setEditing(null); }} className="border px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-50 transition-colors">Cancel</button>
+            <span className="ml-auto flex items-center gap-2 text-[11px] opacity-50"><Upload size={14} /> Multiple Images Supported</span>
           </div>
         </div>
       )}
 
-      <div className="bg-white border mt-6 overflow-auto">
-        <table className="w-full text-[12px]">
-          <thead className="bg-[#F8F6F3] text-[11px] uppercase tracking-widest"><tr><th className="text-left p-3">Product</th><th className="text-left p-3">Category</th><th className="text-left p-3">Price</th><th className="text-left p-3">Stock</th><th className="text-left p-3">Featured</th><th className="text-right p-3">Actions</th></tr></thead>
+      <div className="bg-white border mt-6 overflow-x-auto">
+        <table className="w-full text-[12px] min-w-[600px]">
+          <thead className="bg-[#F8F6F3] text-[11px] uppercase tracking-widest">
+            <tr>
+              <th className="text-left p-3">Product</th>
+              <th className="text-left p-3">Category</th>
+              <th className="text-left p-3">Price</th>
+              <th className="text-left p-3">Cut Price</th>
+              <th className="text-left p-3">Stock</th>
+              <th className="text-left p-3 hidden md:table-cell">Featured</th>
+              <th className="text-right p-3">Actions</th>
+            </tr>
+          </thead>
           <tbody>
-            {products.map(p=>(
-              <tr key={p.id} className="border-t">
-                <td className="p-3 flex items-center gap-3">
-                  {p.images && p.images.length > 0 ? (
-                    <img src={(p.images.find(i=>i.isMain)||p.images[0]).url} className="w-10 h-12 object-cover bg-[#F8F6F3] rounded-sm" />
-                  ) : (
-                    <div className="w-10 h-12 bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 rounded-sm">No img</div>
-                  )}
-                  <span className="font-medium uppercase">{p.name}</span>
+            {products.map(p => (
+              <tr key={p.id} className="border-t hover:bg-gray-50 transition-colors">
+                <td className="p-3">
+                  <div className="flex items-center gap-3">
+                    {p.images && p.images.length > 0 ? (
+                      <img src={(p.images.find(i => i.isMain) || p.images[0]).url} className="w-9 h-11 object-cover bg-[#F8F6F3] rounded-sm shrink-0" />
+                    ) : (
+                      <div className="w-9 h-11 bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 rounded-sm shrink-0">No img</div>
+                    )}
+                    <span className="font-medium uppercase">{p.name}</span>
+                  </div>
                 </td>
                 <td className="p-3 capitalize">{p.category}</td>
-                <td className="p-3">{formatPrice(p.price)}</td>
+                <td className="p-3 font-medium">{formatPrice(p.price)}</td>
+                <td className="p-3">
+                  {p.comparePrice && p.comparePrice > 0
+                    ? <span className="line-through opacity-50">{formatPrice(p.comparePrice)}</span>
+                    : <span className="opacity-30">—</span>}
+                </td>
                 <td className="p-3">{p.stock}</td>
-                <td className="p-3">{p.featured?'Yes':'No'}</td>
-                <td className="p-3 text-right flex gap-2 justify-end">
-                  <button onClick={()=>{setEditing(p); setForm(p); setShowForm(true);}} className="w-7 h-7 border flex items-center justify-center hover:bg-black hover:text-white"><Edit3 size={12}/></button>
-                  <button onClick={()=>handleDelete(p.id)} className="w-7 h-7 border flex items-center justify-center hover:bg-red-600 hover:text-white"><Trash2 size={12}/></button>
+                <td className="p-3 hidden md:table-cell">{p.featured ? '✓' : '—'}</td>
+                <td className="p-3 text-right">
+                  <div className="flex gap-2 justify-end">
+                    <button onClick={() => openEdit(p)} className="w-7 h-7 border flex items-center justify-center hover:bg-black hover:text-white transition-colors" title="Edit">
+                      <Edit3 size={12} />
+                    </button>
+                    <button onClick={() => handleDelete(p.id)} className="w-7 h-7 border flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" title="Delete">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

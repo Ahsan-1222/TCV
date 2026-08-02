@@ -27,6 +27,7 @@ const ProductsAdmin = lazy(() => import('./pages/admin/ProductsAdmin').then(m =>
 const OrdersAdmin = lazy(() => import('./pages/admin/OrdersAdmin').then(m => ({ default: m.OrdersAdmin })));
 const CustomersAdmin = lazy(() => import('./pages/admin/OrdersAdmin').then(m => ({ default: m.CustomersAdmin })));
 const SettingsAdmin = lazy(() => import('./pages/admin/OrdersAdmin').then(m => ({ default: m.SettingsAdmin })));
+const BannerAdmin = lazy(() => import('./pages/admin/BannerAdmin').then(m => ({ default: m.BannerAdmin })));
 
 const Loading = () => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -52,6 +53,7 @@ function App() {
                   <Route index element={<Suspense fallback={<Loading />}><AdminDashboard /></Suspense>} />
                   <Route path="products" element={<Suspense fallback={<Loading />}><ProductsAdmin /></Suspense>} />
                   <Route path="orders" element={<Suspense fallback={<Loading />}><OrdersAdmin /></Suspense>} />
+                  <Route path="banners" element={<Suspense fallback={<Loading />}><BannerAdmin /></Suspense>} />
                   <Route path="customers" element={<Suspense fallback={<Loading />}><CustomersAdmin /></Suspense>} />
                   <Route path="settings" element={<Suspense fallback={<Loading />}><SettingsAdmin /></Suspense>} />
                 </Route>

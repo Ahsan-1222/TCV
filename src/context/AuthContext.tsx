@@ -4,12 +4,14 @@ import type { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (password: string) => Promise<boolean>;
   logout: () => void;
   isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const ADMIN_PASSWORD = 'Admin@@1122';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
@@ -22,14 +24,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     else localStorage.removeItem('tcv_user');
   }, [user]);
 
-  const login = async (email: string, password: string) => {
-    // Demo auth - in production would use Firebase Auth
-    if (email === 'crownvault' && password === 'Admin@123') {
-      setUser({ id: '1', email, role: 'admin', name: 'Admin' });
-      return true;
-    }
-    if (password.length >= 6) {
-      setUser({ id: '2', email, role: 'customer', name: email.split('@')[0] });
+  const login = async (password: string) => {
+    if (password === ADMIN_PASSWORD) {
+      setUser({ id: '1', email: 'admin', role: 'admin', name: 'Admin' });
       return true;
     }
     return false;

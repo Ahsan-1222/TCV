@@ -28,12 +28,12 @@ export const ProductDetail = () => {
   const inWishlist = isInWishlist(product.id);
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-8">
-      <div className="text-[11px] tracking-widest uppercase opacity-50 mb-6">
+    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-6 md:py-8">
+      <div className="text-[10px] md:text-[11px] tracking-widest uppercase opacity-50 mb-4 md:mb-6">
         <Link to="/" className="hover:underline">Home</Link> / <Link to="/shop" className="hover:underline">Shop</Link> / <span className="text-black">{product.name}</span>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-12">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Gallery */}
         <div className="space-y-4">
           <div className="aspect-[4/5] bg-[#F8F6F3] overflow-hidden relative">
@@ -55,7 +55,7 @@ export const ProductDetail = () => {
             <span className="w-1 h-1 bg-crown-gold rounded-full"></span>
             {product.category} • {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
           </div>
-          <h1 className="font-display text-[36px] md:text-[44px] leading-[0.9] tracking-tight uppercase">{product.name}</h1>
+          <h1 className="font-display text-[28px] md:text-[36px] lg:text-[44px] leading-[0.9] tracking-tight uppercase">{product.name}</h1>
           <p className="text-[13px] opacity-60 mt-3">{product.shortDescription}</p>
 
           <div className="flex items-center gap-3 mt-6">
@@ -74,7 +74,7 @@ export const ProductDetail = () => {
           <div className="mt-8 space-y-4 text-[13px] leading-7 opacity-80 border-t border-neutral-100 pt-6">
             <p>{product.description}</p>
             {product.scentNotes && (
-              <div className="grid grid-cols-3 gap-4 mt-6 text-[11px] leading-5">
+              <div className="grid grid-cols-3 gap-2 md:gap-4 mt-6 text-[11px] leading-5">
                 <div><div className="uppercase tracking-widest opacity-50 mb-1">Top Notes</div><div className="font-medium">{product.scentNotes.top.join(', ')}</div></div>
                 <div><div className="uppercase tracking-widest opacity-50 mb-1">Heart</div><div className="font-medium">{product.scentNotes.heart.join(', ')}</div></div>
                 <div><div className="uppercase tracking-widest opacity-50 mb-1">Base</div><div className="font-medium">{product.scentNotes.base.join(', ')}</div></div>

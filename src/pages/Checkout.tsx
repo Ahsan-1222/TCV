@@ -85,14 +85,14 @@ export const Checkout = () => {
     }
   };
 
-  if (items.length === 0) return <div className="max-w-[1600px] mx-auto px-12 py-20"><Link to="/shop">Cart empty, continue shopping</Link></div>;
+  if (items.length === 0) return <div className="max-w-[1600px] mx-auto px-4 md:px-12 py-20 text-center"><p className="text-[14px] opacity-60 mb-6">Your cart is empty.</p><Link to="/shop" className="bg-black text-white px-8 py-3 text-[11px] tracking-widest uppercase">Continue Shopping</Link></div>;
 
   const shipping = total > 2500 ? 0 : 199;
   const discount = payment === 'easypaisa' ? 100 : 0;
   const finalTotal = total + shipping - discount;
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-12 grid lg:grid-cols-[1fr_420px] gap-12">
+    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 grid lg:grid-cols-[1fr_420px] gap-8 lg:gap-12">
       <div>
         <h1 className="font-display text-[32px] leading-none">Checkout</h1>
         <form onSubmit={handleSubmit} className="mt-8 space-y-8">
@@ -191,7 +191,7 @@ export const Checkout = () => {
         </form>
       </div>
 
-      <div className="bg-[#FCFBF9] border p-6 h-fit sticky top-28">
+      <div className="bg-[#FCFBF9] border p-6 h-fit lg:sticky lg:top-28">
         <h3 className="font-display text-lg mb-6">Order Summary</h3>
         <div className="space-y-4">
           {items.map(i=>(

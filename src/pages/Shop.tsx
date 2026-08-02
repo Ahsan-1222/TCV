@@ -29,13 +29,13 @@ export const Shop = () => {
           <h1 className="font-display text-[36px] leading-none">Shop All</h1>
           <p className="text-[13px] opacity-60 mt-3 max-w-[480px]">Perfumes primary focus, with ladies bags and jewellery. Signature scent positioning, long-lasting projection, gift box integration.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 border bg-white p-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1 border bg-white p-1 overflow-x-auto">
             {(['all', 'perfume', 'bags', 'jewellery'] as const).map(cat => (
-              <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 text-[11px] tracking-widest uppercase transition-colors ${selectedCategory === cat ? 'bg-black text-white' : 'hover:bg-neutral-100'}`}>{cat}</button>
+              <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-3 md:px-4 py-2 text-[10px] md:text-[11px] tracking-widest uppercase transition-colors whitespace-nowrap ${selectedCategory === cat ? 'bg-black text-white' : 'hover:bg-neutral-100'}`}>{cat}</button>
             ))}
           </div>
-          <select value={sort} onChange={e => setSort(e.target.value as any)} className="border bg-white px-4 py-2.5 text-[11px] uppercase tracking-widest">
+          <select value={sort} onChange={e => setSort(e.target.value as any)} className="border bg-white px-3 md:px-4 py-2.5 text-[10px] md:text-[11px] uppercase tracking-widest">
             <option value="featured">Featured</option>
             <option value="newest">Newest</option>
             <option value="price-low">Price: Low to High</option>
