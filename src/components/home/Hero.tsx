@@ -38,7 +38,6 @@ export const Hero = () => {
     }
   });
 
-  // Refresh from localStorage when component mounts (picks up admin changes)
   useEffect(() => {
     try {
       const saved = localStorage.getItem('tcv_hero_banners');
@@ -59,84 +58,144 @@ export const Hero = () => {
   const slide = heroSlides[currentSlide] || heroSlides[0];
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-black flex items-center justify-center">
-      {/* Background Slider */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSlide}
-          initial={{ opacity: 0, scale: 1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 7, ease: 'linear', opacity: { duration: 1.5 } }}
-          className="absolute inset-0 w-full h-full"
-        >
-          <img
-            src={slide.image}
-            alt="Luxury Product"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/40 bg-gradient-to-t from-black/80 via-transparent to-black/30 mix-blend-multiply"></div>
-        </motion.div>
-      </AnimatePresence>
+    <section className="relative w-full overflow-hidden bg-black">
+      {/* ── MOBILE LAYOUT (< md) ── */}
+      <div className="md:hidden flex flex-col">
+        {/* Image fills full width, shows complete without cropping */}
+        <div className="relative w-full bg-black">
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={`mob-img-${currentSlide}`}
+              src={slide.image}
+              alt="Luxury Product"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+              className="w-full object-contain max-h-[75vw] sm:max-h-[65vw]"
+              style={{ display: 'block' }}
+            />
+          </AnimatePresence>
+          {/* subtle gradient overlay at bottom */}
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
+        </div>
 
-      {/* Content Overlay */}
-      <div className="relative z-10 w-full max-w-[1600px] mx-auto px-6 md:px-12 flex flex-col items-center justify-center text-center h-full pt-20">
+        {/* Text block below image */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={`content-${currentSlide}`}
-            initial={{ opacity: 0, y: 20 }}
+            key={`mob-text-${currentSlide}`}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="flex flex-col items-center max-w-[800px] px-4"
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="bg-black text-white px-5 pt-5 pb-10 flex flex-col items-center text-center"
           >
-            <span className="text-[10px] md:text-[11px] tracking-[0.3em] uppercase text-white/80 mb-6 font-medium">
+            <span className="text-[9px] tracking-[0.28em] uppercase text-white/60 mb-3">
               {slide.subtitle}
             </span>
-
-            <h1 className="font-display text-[38px] sm:text-[52px] md:text-[80px] lg:text-[100px] leading-[1.1] md:leading-[1] tracking-tight text-white mb-4 md:mb-6">
+            <h1 className="font-display text-[30px] leading-[1.08] tracking-tight text-white mb-3">
               {slide.heading}
             </h1>
-
-            <p className="text-[12px] sm:text-[13px] md:text-[15px] leading-relaxed tracking-wide text-white/90 max-w-[500px] mb-8 md:mb-10 font-light">
+            <p className="text-[12px] leading-relaxed text-white/70 max-w-[320px] mb-6 font-light">
               {slide.description}
             </p>
-
             <Link
               to="/shop"
-              className="mt-4 border border-white/30 text-white hover:bg-white hover:text-black px-10 md:px-12 py-4 text-[10px] md:text-[11px] uppercase tracking-[0.3em] transition-all duration-700 backdrop-blur-sm"
+              className="border border-white/40 text-white px-8 py-3 text-[10px] uppercase tracking-[0.28em] hover:bg-white hover:text-black transition-all duration-500"
             >
               {slide.cta}
             </Link>
+
+            {/* Slide dots */}
+            <div className="flex gap-2 mt-6">
+              {heroSlides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentSlide(i)}
+                  className={`transition-all duration-300 ${i === currentSlide ? 'w-7 h-1 bg-white' : 'w-1 h-1 bg-white/30 rounded-full'}`}
+                />
+              ))}
+            </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Slide Indicators (clickable) */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-        {heroSlides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentSlide(i)}
-            className={`transition-all duration-300 ${i === currentSlide ? 'w-8 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/40 rounded-full'}`}
-          />
-        ))}
-      </div>
-
-      {/* Archive counter */}
-      <div className="absolute bottom-8 left-6 md:left-12 z-20 flex flex-col gap-1 text-[10px] tracking-[0.2em] text-white/70 uppercase">
-        <span>Archive 0{currentSlide + 1} / 0{heroSlides.length}</span>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 right-6 md:right-12 z-20 hidden md:flex flex-col items-center gap-2 text-[10px] tracking-[0.2em] text-white/70 uppercase">
-        <span className="rotate-90 origin-right transform translate-x-3 mb-8">Scroll</span>
-        <div className="w-[1px] h-12 bg-white/30 relative">
+      {/* ── DESKTOP LAYOUT (md+) ── */}
+      <div className="hidden md:block relative h-screen min-h-[600px] max-h-[900px]">
+        <AnimatePresence mode="wait">
           <motion.div
-            animate={{ y: [0, 48, 0] }}
-            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            className="w-full h-1/3 bg-white absolute top-0 left-0"
-          />
+            key={`desk-${currentSlide}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5 }}
+            className="absolute inset-0"
+          >
+            <img
+              src={slide.image}
+              alt="Luxury Product"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/30" />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Desktop content overlay */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 pt-20 pb-16">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`desk-text-${currentSlide}`}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="flex flex-col items-center max-w-[800px]"
+            >
+              <span className="text-[10px] tracking-[0.3em] uppercase text-white/75 mb-5">
+                {slide.subtitle}
+              </span>
+              <h1 className="font-display text-[60px] lg:text-[90px] xl:text-[110px] leading-[1] tracking-tight text-white mb-5">
+                {slide.heading}
+              </h1>
+              <p className="text-[14px] leading-relaxed text-white/85 max-w-[480px] mb-10 font-light">
+                {slide.description}
+              </p>
+              <Link
+                to="/shop"
+                className="border border-white/35 text-white px-12 py-4 text-[11px] uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-700 backdrop-blur-sm"
+              >
+                {slide.cta}
+              </Link>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Desktop dots */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {heroSlides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentSlide(i)}
+              className={`transition-all duration-300 ${i === currentSlide ? 'w-8 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/40 rounded-full'}`}
+            />
+          ))}
+        </div>
+
+        {/* Archive counter */}
+        <div className="absolute bottom-8 left-6 md:left-12 z-20 text-[10px] tracking-[0.2em] text-white/60 uppercase">
+          Archive 0{currentSlide + 1} / 0{heroSlides.length}
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 right-12 z-20 flex flex-col items-center gap-2 text-[10px] tracking-[0.2em] text-white/60 uppercase">
+          <span className="rotate-90 origin-right transform translate-x-3 mb-8">Scroll</span>
+          <div className="w-[1px] h-12 bg-white/25 relative">
+            <motion.div
+              animate={{ y: [0, 48, 0] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              className="w-full h-1/3 bg-white absolute top-0 left-0"
+            />
+          </div>
         </div>
       </div>
     </section>

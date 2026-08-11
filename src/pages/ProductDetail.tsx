@@ -1,12 +1,12 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-// import { motion } from 'framer-motion';
 import { useProducts } from '../hooks/useProducts';
 import { formatPrice, whatsappLink, productWhatsAppMessage } from '../lib/utils';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { Heart, Minus, Plus, Star, Truck, Shield, MessageCircle } from 'lucide-react';
+import { Heart, Minus, Plus, Star, Truck, Shield, MessageCircle, ChevronRight } from 'lucide-react';
 import { ProductGrid } from '../components/product/ProductGrid';
+import { motion } from 'framer-motion';
 
 export const ProductDetail = () => {
   const { slug } = useParams();
@@ -17,127 +17,226 @@ export const ProductDetail = () => {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [slug]);
+  useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
-  if (!product) return <div className="p-20 text-center">Product not found</div>;
+  if (!product) return (
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-white/40 text-[13px] tracking-widest uppercase">
+      Product not found
+    </div>
+  );
 
   const mainImg = product.images[activeImage] || product.images[0];
   const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
   const inWishlist = isInWishlist(product.id);
+  const discount = product.comparePrice
+    ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
+    : 0;
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-6 md:py-8">
-      <div className="text-[10px] md:text-[11px] tracking-widest uppercase opacity-50 mb-4 md:mb-6">
-        <Link to="/" className="hover:underline">Home</Link> / <Link to="/shop" className="hover:underline">Shop</Link> / <span className="text-black">{product.name}</span>
+    <div className="bg-[#0A0A0A] min-h-screen">
+
+      {/* Breadcrumb */}
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 pt-5 pb-0">
+        <div className="flex items-center gap-1.5 text-[9px] tracking-widest uppercase text-white/25">
+          <Link to="/" className="hover:text-white transition-colors">Home</Link>
+          <ChevronRight size={10} />
+          <Link to="/shop" className="hover:text-white transition-colors">Shop</Link>
+          <ChevronRight size={10} />
+          <span className="text-white/50">{product.name}</span>
+        </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Gallery */}
-        <div className="space-y-4">
-          <div className="aspect-[4/5] bg-[#F8F6F3] overflow-hidden relative">
-            <img src={mainImg.url} alt={mainImg.alt} className="w-full h-full object-cover" />
-            {product.comparePrice && <div className="absolute top-4 left-4 bg-black text-white text-[11px] px-3 py-1">-{Math.round(((product.comparePrice - product.price)/product.comparePrice)*100)}%</div>}
-          </div>
-          <div className="grid grid-cols-4 gap-2">
-            {product.images.map((img, i) => (
-              <button key={i} onClick={() => setActiveImage(i)} className={`aspect-square bg-[#F8F6F3] overflow-hidden border-2 ${activeImage===i?'border-black':'border-transparent'}`}>
-                <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Main grid */}
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-6 md:py-10">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-14">
 
-        {/* Info */}
-        <div>
-          <div className="inline-flex items-center gap-2 border border-crown-gold/30 px-3 py-1 text-[10px] tracking-widest uppercase mb-4">
-            <span className="w-1 h-1 bg-crown-gold rounded-full"></span>
-            {product.category} • {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-          </div>
-          <h1 className="font-display text-[28px] md:text-[36px] lg:text-[44px] leading-[0.9] tracking-tight uppercase">{product.name}</h1>
-          <p className="text-[13px] opacity-60 mt-3">{product.shortDescription}</p>
+          {/* Gallery */}
+          <div className="space-y-3">
+            <motion.div
+              key={activeImage}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="aspect-[4/5] sm:aspect-[4/5] max-h-[580px] sm:max-h-none bg-[#111111] overflow-hidden relative rounded-sm flex items-center justify-center"
+            >
+              <img src={mainImg.url} alt={mainImg.alt} className="w-full h-full object-cover object-center max-w-full" />
+              {discount > 0 && (
+                <div className="absolute top-4 left-4 bg-crown-gold text-[#0A0A0A] text-[10px] tracking-widest uppercase px-2.5 py-1 font-semibold">
+                  -{discount}%
+                </div>
+              )}
+            </motion.div>
 
-          <div className="flex items-center gap-3 mt-6">
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => <Star key={i} size={14} fill={i < Math.floor(product.rating) ? '#C9A86A' : 'none'} color={i < Math.floor(product.rating) ? '#C9A86A' : '#e5e5e5'} />)}
-            </div>
-            <span className="text-[12px]">{product.rating} ({product.reviewCount} reviews)</span>
-            <span className="text-[11px] uppercase tracking-widest opacity-50">SKU: {product.sku}</span>
-          </div>
-
-          <div className="flex items-baseline gap-3 mt-6">
-            <span className="text-[28px] font-display font-medium">{formatPrice(product.price)}</span>
-            {product.comparePrice && <span className="line-through opacity-40 text-[14px]">{formatPrice(product.comparePrice)}</span>}
-          </div>
-
-          <div className="mt-8 space-y-4 text-[13px] leading-7 opacity-80 border-t border-neutral-100 pt-6">
-            <p>{product.description}</p>
-            {product.scentNotes && (
-              <div className="grid grid-cols-3 gap-2 md:gap-4 mt-6 text-[11px] leading-5">
-                <div><div className="uppercase tracking-widest opacity-50 mb-1">Top Notes</div><div className="font-medium">{product.scentNotes.top.join(', ')}</div></div>
-                <div><div className="uppercase tracking-widest opacity-50 mb-1">Heart</div><div className="font-medium">{product.scentNotes.heart.join(', ')}</div></div>
-                <div><div className="uppercase tracking-widest opacity-50 mb-1">Base</div><div className="font-medium">{product.scentNotes.base.join(', ')}</div></div>
+            {/* Thumbnails */}
+            {product.images.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {product.images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImage(i)}
+                    className={`aspect-square bg-[#111111] overflow-hidden border-2 transition-all duration-200 ${
+                      activeImage === i ? 'border-crown-gold' : 'border-transparent opacity-50 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+                  </button>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Payment Method Discount Banner */}
-          <div className="mt-6 bg-[#FAF9F6] border border-crown-gold/30 p-4 flex items-start gap-3">
-            <div className="text-crown-gold mt-0.5">✨</div>
-            <div className="text-[12px] leading-relaxed">
-              <strong className="block text-black mb-1 text-[13px]">Save Rs. 100 on this product!</strong>
-              Pay via any <strong className="text-black">Online Payment Method</strong> to get an instant Rs. 100 discount. (Cash on Delivery is available at the original price).
+          {/* Product Info */}
+          <div className="flex flex-col">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 border border-crown-gold/30 px-3 py-1.5 text-[9px] tracking-[0.25em] uppercase text-crown-gold mb-4 w-fit">
+              <span className="w-1 h-1 bg-crown-gold rounded-full" />
+              {product.category} · {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
             </div>
-          </div>
 
-          {/* Quantity + Add to Cart */}
-          <div className="mt-8 flex gap-2 md:gap-3">
-            <div className="flex items-center border shrink-0">
-              <button onClick={() => setQty(Math.max(1, qty-1))} className="w-10 md:w-12 h-[48px] flex items-center justify-center hover:bg-black hover:text-white transition-colors"><Minus size={14} /></button>
-              <span className="w-10 md:w-12 text-center text-[14px]">{qty}</span>
-              <button onClick={() => setQty(qty+1)} className="w-10 md:w-12 h-[48px] flex items-center justify-center hover:bg-black hover:text-white transition-colors"><Plus size={14} /></button>
+            <h1 className="font-display text-[30px] sm:text-[38px] md:text-[46px] leading-[0.92] tracking-tight uppercase text-white">
+              {product.name}
+            </h1>
+            <p className="text-[13px] text-white/45 mt-3 leading-relaxed">{product.shortDescription}</p>
+
+            {/* Rating */}
+            <div className="flex items-center gap-3 mt-5">
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={13}
+                    fill={i < Math.floor(product.rating) ? '#C9A86A' : 'none'}
+                    color={i < Math.floor(product.rating) ? '#C9A86A' : '#333'}
+                  />
+                ))}
+              </div>
+              <span className="text-[11px] text-white/40">{product.rating} ({product.reviewCount} reviews)</span>
             </div>
-            <button onClick={() => addToCart(product, qty)} className="flex-1 h-[48px] bg-black text-white text-[10px] md:text-[11px] tracking-[0.05em] md:tracking-[0.2em] uppercase hover:bg-crown-gold transition-colors flex flex-col justify-center items-center px-1">
-              <span>Add to Cart — {formatPrice(product.price * qty)}</span>
-            </button>
-            <button onClick={() => inWishlist ? removeFromWishlist(product.id) : addToWishlist(product)} className={`w-[48px] h-[48px] shrink-0 border flex items-center justify-center transition-colors ${inWishlist?'bg-crown-gold text-white border-crown-gold':'hover:bg-black hover:text-white'}`}>
-              <Heart size={18} fill={inWishlist?'white':'none'} />
-            </button>
-          </div>
 
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <a href={whatsappLink(productWhatsAppMessage(product.name, product.price, window.location.href))} target="_blank" rel="noopener noreferrer" className="border border-[#25D366] text-[#25D366] h-[48px] text-[11px] tracking-[0.15em] uppercase text-center flex items-center justify-center gap-2 hover:bg-[#25D366] hover:text-white transition-colors">
-              <MessageCircle size={14} /> Order on WhatsApp
-            </a>
-            <div className="border h-[48px] text-[11px] tracking-[0.15em] uppercase text-center opacity-80 flex items-center justify-center gap-2"><Truck size={14} /> COD Available</div>
-          </div>
+            {/* Price */}
+            <div className="flex items-baseline gap-3 mt-6">
+              <span className="font-display text-[30px] font-medium text-crown-gold">{formatPrice(product.price)}</span>
+              {product.comparePrice && (
+                <span className="line-through text-white/25 text-[14px]">{formatPrice(product.comparePrice)}</span>
+              )}
+            </div>
 
-          <div className="mt-8 grid grid-cols-3 gap-4 border-t pt-6 text-[11px] leading-5">
-            <div className="flex gap-2"><Shield size={16} className="opacity-50" /><div><div className="uppercase tracking-widest font-medium">Authentic</div><div className="opacity-60">100% Original</div></div></div>
-            <div className="flex gap-2"><Truck size={16} className="opacity-50" /><div><div className="uppercase tracking-widest font-medium">Nationwide</div><div className="opacity-60">Free over 2500</div></div></div>
-            <div className="flex gap-2"><MessageCircle size={16} className="opacity-50" /><div><div className="uppercase tracking-widest font-medium">WhatsApp</div><div className="opacity-60">Instant reply</div></div></div>
-          </div>
-
-          {/* Reviews */}
-          <div className="mt-12">
-            <h3 className="font-display text-xl mb-4">Reviews ({product.reviewCount})</h3>
-            <div className="space-y-4">
-              {product.reviews.length ? product.reviews.map(r => (
-                <div key={r.id} className="border p-4 bg-[#FCFBF9]">
-                  <div className="flex items-center justify-between"><span className="font-medium text-[13px]">{r.userName}</span><span className="text-[11px] opacity-50">{r.date}</span></div>
-                  <div className="flex gap-1 text-crown-gold text-[12px] mt-1">{'★★★★★'.slice(0, r.rating)}</div>
-                  <p className="text-[13px] mt-2 opacity-70">{r.comment}</p>
+            {/* Description */}
+            <div className="mt-6 border-t border-white/8 pt-5 space-y-3 text-[13px] leading-[1.85] text-white/50">
+              <p>{product.description}</p>
+              {product.scentNotes && (
+                <div className="grid grid-cols-3 gap-3 mt-5 text-[11px]">
+                  {[['Top Notes', product.scentNotes.top], ['Heart', product.scentNotes.heart], ['Base', product.scentNotes.base]].map(([label, notes]) => (
+                    <div key={label as string}>
+                      <div className="text-[8px] tracking-[0.3em] uppercase text-crown-gold/70 mb-1.5">{label}</div>
+                      <div className="text-white/60 leading-[1.6]">{(notes as string[]).join(', ')}</div>
+                    </div>
+                  ))}
                 </div>
-              )) : <p className="text-[13px] opacity-60">No reviews yet. Be the first to review.</p>}
+              )}
             </div>
+
+            {/* Online discount banner */}
+            <div className="mt-5 bg-crown-gold/10 border border-crown-gold/25 p-4 flex items-start gap-3">
+              <span className="text-crown-gold text-[16px] mt-0.5">✦</span>
+              <div className="text-[12px] leading-relaxed text-white/60">
+                <strong className="text-white block mb-0.5 text-[13px]">Save Rs. 100!</strong>
+                Pay online (Easypaisa) to get an instant Rs. 100 discount. COD available at original price.
+              </div>
+            </div>
+
+            {/* Qty + Add to Cart */}
+            <div className="mt-6 flex flex-wrap sm:flex-nowrap gap-2">
+              <div className="flex items-center border border-white/15 shrink-0">
+                <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-12 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition-all">
+                  <Minus size={13} />
+                </button>
+                <span className="w-10 text-center text-[13px] text-white">{qty}</span>
+                <button onClick={() => setQty(qty + 1)} className="w-10 h-12 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition-all">
+                  <Plus size={13} />
+                </button>
+              </div>
+              <button
+                onClick={() => addToCart(product, qty)}
+                className="flex-1 min-w-[160px] h-12 bg-crown-gold text-[#0A0A0A] text-[10px] sm:text-[11px] tracking-[0.2em] uppercase font-semibold hover:bg-crown-gold-dark transition-colors flex justify-center items-center"
+              >
+                Add to Cart — {formatPrice(product.price * qty)}
+              </button>
+              <button
+                onClick={() => inWishlist ? removeFromWishlist(product.id) : addToWishlist(product)}
+                className={`w-12 h-12 shrink-0 border flex items-center justify-center transition-all ${
+                  inWishlist
+                    ? 'bg-crown-gold border-crown-gold text-[#0A0A0A]'
+                    : 'border-white/15 text-white/50 hover:border-crown-gold hover:text-crown-gold'
+                }`}
+              >
+                <Heart size={17} fill={inWishlist ? 'currentColor' : 'none'} strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* WhatsApp + COD */}
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <a
+                href={whatsappLink(productWhatsAppMessage(product.name, product.price, window.location.href))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="border border-[#25D366] text-[#25D366] h-12 text-[10px] tracking-[0.2em] uppercase text-center flex items-center justify-center gap-2 hover:bg-[#25D366] hover:text-white transition-colors"
+              >
+                <MessageCircle size={13} /> Order on WhatsApp
+              </a>
+              <div className="border border-white/10 h-12 text-[10px] tracking-[0.2em] uppercase text-center text-white/40 flex items-center justify-center gap-2">
+                <Truck size={13} /> COD Available
+              </div>
+            </div>
+
+            {/* Trust badges */}
+            <div className="mt-6 grid grid-cols-3 gap-3 border-t border-white/8 pt-5 text-[10px]">
+              {[
+                [Shield, 'Authentic', '100% Original'],
+                [Truck, 'Nationwide', 'Free over 2500'],
+                [MessageCircle, 'WhatsApp', 'Instant reply'],
+              ].map(([Icon, title, sub]) => (
+                <div key={title as string} className="flex gap-2">
+                  {/* @ts-ignore */}
+                  <Icon size={15} className="text-crown-gold/60 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-[9px] uppercase tracking-widest text-white/50 font-medium">{title as string}</div>
+                    <div className="text-white/25 text-[9px] mt-0.5">{sub as string}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Reviews */}
+            {product.reviews.length > 0 && (
+              <div className="mt-8 border-t border-white/8 pt-6">
+                <h3 className="font-display text-[20px] text-white mb-4">Reviews ({product.reviewCount})</h3>
+                <div className="space-y-3">
+                  {product.reviews.map(r => (
+                    <div key={r.id} className="border border-white/8 p-4 bg-[#111111]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-medium text-white">{r.userName}</span>
+                        <span className="text-[10px] text-white/30">{r.date}</span>
+                      </div>
+                      <div className="flex gap-0.5 text-crown-gold text-[12px] mt-1.5">
+                        {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                      </div>
+                      <p className="text-[12px] mt-2 text-white/45 leading-relaxed">{r.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="mt-20">
-        <ProductGrid products={related} title="You May Also Like" />
-      </div>
+      {/* Related Products */}
+      {related.length > 0 && (
+        <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-14 md:py-20 border-t border-white/5">
+          <ProductGrid products={related} title="You May Also Like" />
+        </div>
+      )}
     </div>
   );
 };

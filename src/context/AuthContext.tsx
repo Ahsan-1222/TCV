@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '../types';
 
@@ -15,24 +15,28 @@ const ADMIN_PASSWORD = 'Admin@@1122';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('tcv_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('tcv_admin_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
-
-  useEffect(() => {
-    if (user) localStorage.setItem('tcv_user', JSON.stringify(user));
-    else localStorage.removeItem('tcv_user');
-  }, [user]);
 
   const login = async (password: string) => {
     if (password === ADMIN_PASSWORD) {
-      setUser({ id: '1', email: 'admin', role: 'admin', name: 'Admin' });
+      const adminUser: User = { id: '1', email: 'admin@thecrownvault.com', role: 'admin', name: 'Admin' };
+      setUser(adminUser);
+      localStorage.setItem('tcv_admin_user', JSON.stringify(adminUser));
       return true;
     }
     return false;
   };
 
-  const logout = () => setUser(null);
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('tcv_admin_user');
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isAdmin: user?.role === 'admin' }}>

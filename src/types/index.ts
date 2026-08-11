@@ -86,7 +86,7 @@ export interface Order {
   customerPhone: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'completed' | 'cancelled' | 'refunded';
   paymentMethod: 'cod' | 'whatsapp';
   shippingAddress: {
     street: string;

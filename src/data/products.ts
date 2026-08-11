@@ -104,7 +104,7 @@ export const products: Product[] = [
     sku: 'ROOH-NOIR-50',
     name: 'ROOH NOIR',
     slug: 'rooh-noir',
-    description: 'NOIR - Rich & Warm Oriental. Inspired by midnight in Lahore, this deep fragrance weaves oud, vanilla, and tobacco leaf into a luxurious veil. Long-lasting projection of 10+ hours, ideal for evenings and formal gatherings. Presented in matte black bottle with polished gold hardware.',
+    description: 'NOIR - Rich & Warm Oriental. Inspired by midnight in Rawalpindi, this deep fragrance weaves oud, vanilla, and tobacco leaf into a luxurious veil. Long-lasting projection of 10+ hours, ideal for evenings and formal gatherings. Presented in matte black bottle with polished gold hardware.',
     shortDescription: 'Rich & Warm Oriental - Eau De Parfum 50ML',
     category: 'perfume',
     subCategory: 'Oriental',

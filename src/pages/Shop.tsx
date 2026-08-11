@@ -2,84 +2,99 @@ import { useState, useMemo } from 'react';
 import { useProducts } from '../hooks/useProducts';
 import { ProductGrid } from '../components/product/ProductGrid';
 import type { ProductCategory } from '../types';
-import { SlidersHorizontal, Grid, List } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+const categories: { label: string; value: ProductCategory | 'all' }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Perfume', value: 'perfume' },
+  { label: 'Bags', value: 'bags' },
+  { label: 'Jewellery', value: 'jewellery' },
+];
 
 export const Shop = () => {
   const products = useProducts();
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
   const [sort, setSort] = useState<'featured' | 'price-low' | 'price-high' | 'newest'>('featured');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
 
   const filtered = useMemo(() => {
     let list = [...products];
     if (selectedCategory !== 'all') list = list.filter(p => p.category === selectedCategory);
-    list = list.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
     if (sort === 'price-low') list.sort((a, b) => a.price - b.price);
     if (sort === 'price-high') list.sort((a, b) => b.price - a.price);
     if (sort === 'newest') list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     if (sort === 'featured') list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     return list;
-  }, [selectedCategory, sort, priceRange]);
+  }, [selectedCategory, sort]);
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-        <div>
-          <h1 className="font-display text-[36px] leading-none">Shop All</h1>
-          <p className="text-[13px] opacity-60 mt-3 max-w-[480px]">Perfumes primary focus, with ladies bags and jewellery. Signature scent positioning, long-lasting projection, gift box integration.</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 border bg-white p-1 overflow-x-auto">
-            {(['all', 'perfume', 'bags', 'jewellery'] as const).map(cat => (
-              <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-3 md:px-4 py-2 text-[10px] md:text-[11px] tracking-widest uppercase transition-colors whitespace-nowrap ${selectedCategory === cat ? 'bg-black text-white' : 'hover:bg-neutral-100'}`}>{cat}</button>
-            ))}
+    <div className="bg-[#0A0A0A] min-h-screen">
+
+      {/* Dark hero header */}
+      <div className="border-b border-white/5 bg-[#111111]">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-10 md:py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="text-[9px] tracking-[0.4em] uppercase text-crown-gold mb-3">The Crown Vault</div>
+            <h1 className="font-display text-[38px] sm:text-[52px] md:text-[68px] leading-[0.92] text-white">
+              Shop All
+            </h1>
+            <p className="text-[12px] sm:text-[13px] text-white/40 mt-4 max-w-[400px] leading-relaxed">
+              Perfumes, ladies bags & jewellery. Signature scent positioning, long-lasting projection, gift box integration.
+            </p>
+          </motion.div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-8">
+            {/* Category chips */}
+            <div className="flex gap-1.5 flex-wrap">
+              {categories.map(cat => (
+                <button
+                  key={cat.value}
+                  onClick={() => setSelectedCategory(cat.value)}
+                  className={`px-4 py-2 text-[10px] tracking-[0.2em] uppercase transition-all duration-200 ${
+                    selectedCategory === cat.value
+                      ? 'bg-crown-gold text-[#0A0A0A] font-semibold'
+                      : 'border border-white/15 text-white/50 hover:border-white/40 hover:text-white'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort */}
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value as any)}
+              className="ml-auto border border-white/15 bg-transparent text-white/50 px-3 py-2 text-[10px] uppercase tracking-widest outline-none hover:border-white/40 focus:border-crown-gold/50 transition-colors"
+            >
+              <option value="featured" className="bg-[#111]">Featured</option>
+              <option value="newest" className="bg-[#111]">Newest</option>
+              <option value="price-low" className="bg-[#111]">Price: Low → High</option>
+              <option value="price-high" className="bg-[#111]">Price: High → Low</option>
+            </select>
           </div>
-          <select value={sort} onChange={e => setSort(e.target.value as any)} className="border bg-white px-3 md:px-4 py-2.5 text-[10px] md:text-[11px] uppercase tracking-widest">
-            <option value="featured">Featured</option>
-            <option value="newest">Newest</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-          </select>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[220px_1fr] gap-8">
-        <aside className="hidden lg:block space-y-8 sticky top-28 h-fit">
-          <div>
-            <h4 className="text-[11px] tracking-[0.2em] uppercase mb-4 flex items-center gap-2"><SlidersHorizontal size={14} /> Filters</h4>
-            <div className="space-y-6">
-              <div>
-                <div className="text-[12px] font-medium mb-3">Price Range</div>
-                <div className="space-y-3">
-                  <input type="range" min={0} max={10000} step={100} value={priceRange[1]} onChange={e => setPriceRange([0, Number(e.target.value)])} className="w-full accent-black" />
-                  <div className="flex justify-between text-[11px] opacity-60"><span>Rs. {priceRange[0]}</span><span>Rs. {priceRange[1]}</span></div>
-                </div>
-              </div>
-              <div>
-                <div className="text-[12px] font-medium mb-3">Attributes</div>
-                <div className="space-y-2 text-[12px] opacity-70">
-                  <label className="flex items-center gap-2"><input type="checkbox" /> Best Seller</label>
-                  <label className="flex items-center gap-2"><input type="checkbox" /> New Arrival</label>
-                  <label className="flex items-center gap-2"><input type="checkbox" /> Gift Box</label>
-                  <label className="flex items-center gap-2"><input type="checkbox" /> COD Available</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        <div>
-          <div className="flex items-center justify-between mb-6 text-[11px] uppercase tracking-widest opacity-60">
-            <span>{filtered.length} Products</span>
-            <div className="flex items-center gap-2"><Grid size={16} /><List size={16} className="opacity-30" /></div>
-          </div>
-          {filtered.length === 0 ? (
-            <div className="py-20 text-center border border-dashed">No products found</div>
-          ) : (
-            <motion.div layout><ProductGrid products={filtered} /></motion.div>
-          )}
+      {/* Products */}
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-10 md:py-16">
+        <div className="flex items-center justify-between mb-6 md:mb-10">
+          <span className="text-[10px] uppercase tracking-[0.25em] text-white/30">{filtered.length} Products</span>
         </div>
+
+        {filtered.length === 0 ? (
+          <div className="py-24 text-center border border-white/8 text-white/30 text-[13px] tracking-widest uppercase">
+            No products found
+          </div>
+        ) : (
+          <motion.div layout>
+            <ProductGrid products={filtered} />
+          </motion.div>
+        )}
       </div>
     </div>
   );

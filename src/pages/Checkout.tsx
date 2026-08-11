@@ -73,6 +73,10 @@ export const Checkout = () => {
           createdAt: { seconds: Math.floor(Date.now() / 1000) }
         };
         localStorage.setItem('tcv_last_order', JSON.stringify(fallbackOrder));
+        try {
+          const existing = JSON.parse(localStorage.getItem('tcv_orders') || '[]');
+          localStorage.setItem('tcv_orders', JSON.stringify([fallbackOrder, ...existing]));
+        } catch {}
       }
       
       clearCart();
@@ -85,47 +89,56 @@ export const Checkout = () => {
     }
   };
 
-  if (items.length === 0) return <div className="max-w-[1600px] mx-auto px-4 md:px-12 py-20 text-center"><p className="text-[14px] opacity-60 mb-6">Your cart is empty.</p><Link to="/shop" className="bg-black text-white px-8 py-3 text-[11px] tracking-widest uppercase">Continue Shopping</Link></div>;
+  if (items.length === 0) return (
+    <div className="bg-[#0A0A0A] min-h-screen flex items-center justify-center">
+      <div className="text-center px-4">
+        <p className="text-[13px] text-white/40 mb-6">Your cart is empty.</p>
+        <Link to="/shop" className="bg-crown-gold text-[#0A0A0A] px-8 py-3.5 text-[10px] tracking-[0.25em] uppercase font-semibold hover:bg-crown-gold-dark transition-colors">Continue Shopping</Link>
+      </div>
+    </div>
+  );
 
   const shipping = total > 2500 ? 0 : 199;
   const discount = payment === 'easypaisa' ? 100 : 0;
   const finalTotal = total + shipping - discount;
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 grid lg:grid-cols-[1fr_420px] gap-8 lg:gap-12">
+    <div className="bg-[#0A0A0A] min-h-screen">
+    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-14 grid lg:grid-cols-[1fr_420px] gap-8 lg:gap-12">
       <div>
-        <h1 className="font-display text-[32px] leading-none">Checkout</h1>
+        <div className="text-[9px] tracking-[0.4em] uppercase text-crown-gold mb-2">Secure Order</div>
+        <h1 className="font-display text-[36px] sm:text-[44px] leading-none text-white mb-8">Checkout</h1>
         <form onSubmit={handleSubmit} className="mt-8 space-y-8">
-          <div className="bg-white border p-6">
-            <h3 className="text-[11px] tracking-[0.2em] uppercase mb-6">Shipping Information</h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              <input required placeholder="Full Name" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="border px-4 py-3 text-[13px] outline-none focus:border-black" />
-              <input required placeholder="Phone (WhatsApp)" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} className="border px-4 py-3 text-[13px] outline-none focus:border-black" />
-              <input placeholder="Email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className="border px-4 py-3 text-[13px] outline-none focus:border-black md:col-span-2" />
-              <input required placeholder="Street Address" value={form.address} onChange={e=>setForm({...form,address:e.target.value})} className="border px-4 py-3 text-[13px] outline-none focus:border-black md:col-span-2" />
-              <input required placeholder="City" value={form.city} onChange={e=>setForm({...form,city:e.target.value})} className="border px-4 py-3 text-[13px] outline-none focus:border-black" />
-              <select value={form.province} onChange={e=>setForm({...form,province:e.target.value})} className="border px-4 py-3 text-[13px] outline-none focus:border-black">
-                <option>Punjab</option><option>Sindh</option><option>KPK</option><option>Balochistan</option><option>Islamabad</option><option>GB / AJK</option>
+          <div className="bg-[#111111] border border-white/8 p-5 sm:p-6">
+            <h3 className="text-[9px] tracking-[0.3em] uppercase text-crown-gold mb-5">Shipping Information</h3>
+            <div className="grid md:grid-cols-2 gap-3">
+              <input required placeholder="Full Name" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="bg-[#0A0A0A] border border-white/10 px-4 py-3 text-[13px] text-white placeholder-white/25 outline-none focus:border-crown-gold/50 transition-colors" />
+              <input required placeholder="Phone (WhatsApp)" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} className="bg-[#0A0A0A] border border-white/10 px-4 py-3 text-[13px] text-white placeholder-white/25 outline-none focus:border-crown-gold/50 transition-colors" />
+              <input placeholder="Email (optional)" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className="bg-[#0A0A0A] border border-white/10 px-4 py-3 text-[13px] text-white placeholder-white/25 outline-none focus:border-crown-gold/50 transition-colors md:col-span-2" />
+              <input required placeholder="Street Address" value={form.address} onChange={e=>setForm({...form,address:e.target.value})} className="bg-[#0A0A0A] border border-white/10 px-4 py-3 text-[13px] text-white placeholder-white/25 outline-none focus:border-crown-gold/50 transition-colors md:col-span-2" />
+              <input required placeholder="City" value={form.city} onChange={e=>setForm({...form,city:e.target.value})} className="bg-[#0A0A0A] border border-white/10 px-4 py-3 text-[13px] text-white placeholder-white/25 outline-none focus:border-crown-gold/50 transition-colors" />
+              <select value={form.province} onChange={e=>setForm({...form,province:e.target.value})} className="bg-[#0A0A0A] border border-white/10 px-4 py-3 text-[13px] text-white outline-none focus:border-crown-gold/50 transition-colors">
+                <option className="bg-[#111]">Punjab</option><option className="bg-[#111]">Sindh</option><option className="bg-[#111]">KPK</option><option className="bg-[#111]">Balochistan</option><option className="bg-[#111]">Islamabad</option><option className="bg-[#111]">GB / AJK</option>
               </select>
             </div>
           </div>
 
-          <div className="bg-white border p-6">
-            <h3 className="text-[11px] tracking-[0.2em] uppercase mb-6">Payment Method</h3>
+          <div className="bg-[#111111] border border-white/8 p-5 sm:p-6">
+            <h3 className="text-[9px] tracking-[0.3em] uppercase text-crown-gold mb-5">Payment Method</h3>
             
             {/* Payment Method Selector */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-6 sm:mb-8">
               <button 
                 type="button"
                 onClick={() => setPayment('easypaisa')}
-                className={`py-4 text-[13px] tracking-widest font-bold uppercase transition-colors rounded-lg flex items-center justify-center ${payment === 'easypaisa' ? 'bg-[#2A2522] text-white' : 'bg-[#E3D1C4]/40 border border-transparent text-[#2A2522] hover:bg-[#E3D1C4]/60'}`}
+                className={`py-3 sm:py-4 text-[11px] sm:text-[13px] tracking-wider sm:tracking-widest font-bold uppercase transition-colors rounded-lg flex items-center justify-center ${payment === 'easypaisa' ? 'bg-[#2A2522] text-white' : 'bg-[#E3D1C4]/40 border border-transparent text-[#2A2522] hover:bg-[#E3D1C4]/60'}`}
               >
                 EASYPAISA
               </button>
               <button 
                 type="button"
                 onClick={() => setPayment('cod')}
-                className={`py-4 text-[13px] tracking-widest font-bold uppercase transition-colors rounded-lg flex items-center justify-center ${payment === 'cod' ? 'bg-[#2A2522] text-white' : 'bg-[#E3D1C4]/40 border border-transparent text-[#2A2522] hover:bg-[#E3D1C4]/60'}`}
+                className={`py-3 sm:py-4 text-[11px] sm:text-[13px] tracking-wider sm:tracking-widest font-bold uppercase transition-colors rounded-lg flex items-center justify-center ${payment === 'cod' ? 'bg-[#2A2522] text-white' : 'bg-[#E3D1C4]/40 border border-transparent text-[#2A2522] hover:bg-[#E3D1C4]/60'}`}
               >
                 COD
               </button>
@@ -185,28 +198,36 @@ export const Checkout = () => {
             )}
           </div>
 
-          <button type="submit" disabled={isSubmitting} className="w-full bg-black text-white py-4 text-[11px] tracking-[0.2em] uppercase hover:bg-crown-gold transition-colors disabled:opacity-50">
+          <button type="submit" disabled={isSubmitting} className="w-full bg-crown-gold text-[#0A0A0A] py-4 text-[11px] tracking-[0.25em] uppercase font-semibold hover:bg-crown-gold-dark transition-colors disabled:opacity-50">
             {isSubmitting ? 'Processing Order...' : `Place Order — ${formatPrice(finalTotal)}`}
           </button>
         </form>
       </div>
 
-      <div className="bg-[#FCFBF9] border p-6 h-fit lg:sticky lg:top-28">
-        <h3 className="font-display text-lg mb-6">Order Summary</h3>
+      <div className="bg-[#111111] border border-white/8 p-5 sm:p-6 h-fit lg:sticky lg:top-28">
+        <h3 className="font-display text-[20px] text-white mb-5">Order Summary</h3>
         <div className="space-y-4">
           {items.map(i=>(
-            <div key={i.product.id} className="flex gap-3"><img src={(i.product.images.find(img=>img.isMain)||i.product.images[0]).url} alt={i.product.name} className="w-12 h-14 object-cover bg-white" /><div className="flex-1"><div className="text-[12px] uppercase font-medium">{i.product.name}</div><div className="text-[11px] opacity-60">Qty: {i.quantity}</div></div><div className="text-[12px] font-semibold">{formatPrice(i.product.price*i.quantity)}</div></div>
+            <div key={i.product.id} className="flex gap-3">
+              <img src={(i.product.images.find(img=>img.isMain)||i.product.images[0]).url} alt={i.product.name} className="w-12 h-14 object-cover bg-[#1A1A1A]" />
+              <div className="flex-1">
+                <div className="text-[11px] uppercase font-medium text-white">{i.product.name}</div>
+                <div className="text-[10px] text-white/35 mt-0.5">Qty: {i.quantity}</div>
+              </div>
+              <div className="text-[12px] font-semibold text-crown-gold">{formatPrice(i.product.price*i.quantity)}</div>
+            </div>
           ))}
         </div>
-        <div className="border-t mt-6 pt-4 space-y-2 text-[13px]">
-          <div className="flex justify-between"><span className="opacity-60">Subtotal</span><span>{formatPrice(total)}</span></div>
-          <div className="flex justify-between"><span className="opacity-60">Shipping</span><span>{shipping===0?'Free':formatPrice(shipping)}</span></div>
+        <div className="border-t border-white/8 mt-5 pt-4 space-y-2 text-[13px]">
+          <div className="flex justify-between text-white/45"><span>Subtotal</span><span className="text-white">{formatPrice(total)}</span></div>
+          <div className="flex justify-between text-white/45"><span>Shipping</span><span className="text-white">{shipping===0?'Free':formatPrice(shipping)}</span></div>
           {discount > 0 && (
-            <div className="flex justify-between text-[#C09450] font-medium"><span className="opacity-90">Online Payment Discount</span><span>- {formatPrice(discount)}</span></div>
+            <div className="flex justify-between text-crown-gold font-medium"><span>Online Discount</span><span>- {formatPrice(discount)}</span></div>
           )}
-          <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span>{formatPrice(finalTotal)}</span></div>
+          <div className="flex justify-between font-semibold border-t border-white/8 pt-2 text-white"><span>Total</span><span>{formatPrice(finalTotal)}</span></div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

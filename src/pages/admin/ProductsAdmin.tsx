@@ -6,8 +6,13 @@ import { Plus, Edit3, Trash2, Upload } from 'lucide-react';
 
 export const ProductsAdmin = () => {
   const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('tcv_admin_products');
-    return saved ? JSON.parse(saved) : initialProducts;
+    try {
+      const savedAdmin = localStorage.getItem('tcv_admin_products');
+      if (savedAdmin) return JSON.parse(savedAdmin);
+      const saved = localStorage.getItem('tcv_products');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return initialProducts;
   });
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -96,9 +101,9 @@ export const ProductsAdmin = () => {
   };
 
   return (
-    <div>
+    <div className="text-[#1A1A1A]">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="font-display text-[24px] md:text-[28px]">Manage Products — {products.length}</h1>
+        <h1 className="font-display text-[24px] md:text-[28px] text-[#1A1A1A]">Manage Products — {products.length}</h1>
         <button
           onClick={openAdd}
           className="bg-black text-white px-5 py-2.5 text-[11px] tracking-widest uppercase flex items-center gap-2 hover:bg-gray-800 transition-colors"
@@ -108,35 +113,35 @@ export const ProductsAdmin = () => {
       </div>
 
       {showForm && (
-        <div className="bg-white border p-4 md:p-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <h3 className="md:col-span-2 font-display text-lg">{editing ? 'Edit Product' : 'Add New Product'}</h3>
+        <div className="bg-white border border-gray-200 p-4 md:p-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-[#1A1A1A]">
+          <h3 className="md:col-span-2 font-display text-lg text-[#1A1A1A]">{editing ? 'Edit Product' : 'Add New Product'}</h3>
 
           <div>
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Product Name *</label>
-            <input placeholder="e.g. Noir Oud, Rose Luxe" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Product Name *</label>
+            <input placeholder="e.g. Noir Oud, Rose Luxe" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
           </div>
           <div>
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">SKU Code</label>
-            <input placeholder="e.g. TCV-NOIR-01" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
-          </div>
-
-          <div>
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Price (PKR) *</label>
-            <input type="number" placeholder="e.g. 5450" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
-          </div>
-          <div>
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Cut / Compare Price (PKR)</label>
-            <input type="number" placeholder="Original price shown crossed out (e.g. 7500)" value={form.comparePrice || ''} onChange={e => setForm({ ...form, comparePrice: Number(e.target.value) })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
-            <p className="text-[10px] opacity-50 mt-1">Leave 0 to not show a cut price</p>
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">SKU Code</label>
+            <input placeholder="e.g. TCV-NOIR-01" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
           </div>
 
           <div>
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Stock Quantity</label>
-            <input type="number" placeholder="e.g. 100" value={form.stock || ''} onChange={e => setForm({ ...form, stock: Number(e.target.value) })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Price (PKR) *</label>
+            <input type="number" placeholder="e.g. 5450" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
           </div>
           <div>
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Category</label>
-            <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value as any })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black bg-white">
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Cut / Compare Price (PKR)</label>
+            <input type="number" placeholder="Original price shown crossed out (e.g. 7500)" value={form.comparePrice || ''} onChange={e => setForm({ ...form, comparePrice: Number(e.target.value) })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
+            <p className="text-[10px] text-gray-500 mt-1">Leave 0 to not show a cut price</p>
+          </div>
+
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Stock Quantity</label>
+            <input type="number" placeholder="e.g. 100" value={form.stock || ''} onChange={e => setForm({ ...form, stock: Number(e.target.value) })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Category</label>
+            <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value as any })} className="border border-gray-300 px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black bg-white">
               <option value="perfume">Perfume</option>
               <option value="bags">Bags</option>
               <option value="jewellery">Jewellery</option>
@@ -145,29 +150,29 @@ export const ProductsAdmin = () => {
           </div>
 
           <div className="flex items-center pt-6">
-            <label className="flex items-center gap-2 text-[12px] cursor-pointer">
+            <label className="flex items-center gap-2 text-[12px] text-[#1A1A1A] cursor-pointer font-medium">
               <input type="checkbox" checked={!!form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} />
               Featured Product (shows on homepage)
             </label>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Short Description</label>
-            <input placeholder="Short tagline (shown on product cards)" value={form.shortDescription} onChange={e => setForm({ ...form, shortDescription: e.target.value })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" />
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Short Description</label>
+            <input placeholder="Short tagline (shown on product cards)" value={form.shortDescription} onChange={e => setForm({ ...form, shortDescription: e.target.value })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Full Description</label>
-            <textarea placeholder="Full product details, features, scent notes..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="border px-4 py-2.5 text-[13px] w-full focus:outline-none focus:border-black" rows={3} />
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Full Description</label>
+            <textarea placeholder="Full product details, features, scent notes..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" rows={3} />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-[11px] uppercase tracking-widest opacity-60 mb-2">Product Images (Paste URLs)</label>
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Product Images (Paste URLs)</label>
             <div className="flex gap-2 mb-2">
-              <input placeholder="Paste image URL and press Add..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addImage(); }} className="border px-4 py-2.5 text-[13px] flex-1 focus:outline-none focus:border-black" />
+              <input placeholder="Paste image URL and press Add..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addImage(); }} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] flex-1 focus:outline-none focus:border-black" />
               <button onClick={addImage} className="bg-black text-white px-5 py-2 text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-colors shrink-0">Add</button>
             </div>
             <div className="flex gap-3 flex-wrap mt-3">
               {(form.images || []).map((img, i) => (
-                <div key={i} className="relative w-20 h-24 border">
+                <div key={i} className="relative w-20 h-24 border border-gray-300">
                   <img src={img.url} alt="" className="w-full h-full object-cover" />
                   <button onClick={() => removeImage(i)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors">✕</button>
                   {img.isMain && <span className="absolute bottom-1 left-1 bg-black text-white text-[9px] px-1.5 py-0.5">MAIN</span>}
@@ -178,15 +183,15 @@ export const ProductsAdmin = () => {
 
           <div className="md:col-span-2 flex flex-wrap gap-2 mt-4">
             <button onClick={handleSave} className="bg-black text-white px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-800 transition-colors">Save Product</button>
-            <button onClick={() => { setShowForm(false); setEditing(null); }} className="border px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-50 transition-colors">Cancel</button>
-            <span className="ml-auto flex items-center gap-2 text-[11px] opacity-50"><Upload size={14} /> Multiple Images Supported</span>
+            <button onClick={() => { setShowForm(false); setEditing(null); }} className="border border-gray-300 text-[#1A1A1A] px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-50 transition-colors">Cancel</button>
+            <span className="ml-auto flex items-center gap-2 text-[11px] text-gray-500"><Upload size={14} /> Multiple Images Supported</span>
           </div>
         </div>
       )}
 
-      <div className="bg-white border mt-6 overflow-x-auto">
-        <table className="w-full text-[12px] min-w-[600px]">
-          <thead className="bg-[#F8F6F3] text-[11px] uppercase tracking-widest">
+      <div className="bg-white border border-gray-200 mt-6 overflow-x-auto text-[#1A1A1A]">
+        <table className="w-full text-[12px] min-w-[600px] text-[#1A1A1A]">
+          <thead className="bg-[#F8F6F3] text-[11px] uppercase tracking-widest text-gray-700 border-b border-gray-200">
             <tr>
               <th className="text-left p-3">Product</th>
               <th className="text-left p-3">Category</th>
@@ -197,34 +202,34 @@ export const ProductsAdmin = () => {
               <th className="text-right p-3">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 text-[#1A1A1A]">
             {products.map(p => (
-              <tr key={p.id} className="border-t hover:bg-gray-50 transition-colors">
+              <tr key={p.id} className="hover:bg-gray-50 transition-colors text-[#1A1A1A]">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {p.images && p.images.length > 0 ? (
-                      <img src={(p.images.find(i => i.isMain) || p.images[0]).url} className="w-9 h-11 object-cover bg-[#F8F6F3] rounded-sm shrink-0" />
+                      <img src={(p.images.find(i => i.isMain) || p.images[0]).url} className="w-9 h-11 object-cover bg-[#F8F6F3] border border-gray-200 rounded-sm shrink-0" />
                     ) : (
                       <div className="w-9 h-11 bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 rounded-sm shrink-0">No img</div>
                     )}
-                    <span className="font-medium uppercase">{p.name}</span>
+                    <span className="font-medium uppercase text-[#1A1A1A]">{p.name}</span>
                   </div>
                 </td>
-                <td className="p-3 capitalize">{p.category}</td>
-                <td className="p-3 font-medium">{formatPrice(p.price)}</td>
+                <td className="p-3 capitalize text-[#1A1A1A]">{p.category}</td>
+                <td className="p-3 font-medium text-[#1A1A1A]">{formatPrice(p.price)}</td>
                 <td className="p-3">
                   {p.comparePrice && p.comparePrice > 0
-                    ? <span className="line-through opacity-50">{formatPrice(p.comparePrice)}</span>
-                    : <span className="opacity-30">—</span>}
+                    ? <span className="line-through text-gray-400">{formatPrice(p.comparePrice)}</span>
+                    : <span className="text-gray-300">—</span>}
                 </td>
-                <td className="p-3">{p.stock}</td>
-                <td className="p-3 hidden md:table-cell">{p.featured ? '✓' : '—'}</td>
+                <td className="p-3 text-[#1A1A1A]">{p.stock}</td>
+                <td className="p-3 hidden md:table-cell text-[#1A1A1A]">{p.featured ? '✓' : '—'}</td>
                 <td className="p-3 text-right">
                   <div className="flex gap-2 justify-end">
-                    <button onClick={() => openEdit(p)} className="w-7 h-7 border flex items-center justify-center hover:bg-black hover:text-white transition-colors" title="Edit">
+                    <button onClick={() => openEdit(p)} className="w-7 h-7 border border-gray-300 text-[#1A1A1A] flex items-center justify-center hover:bg-black hover:text-white transition-colors" title="Edit">
                       <Edit3 size={12} />
                     </button>
-                    <button onClick={() => handleDelete(p.id)} className="w-7 h-7 border flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" title="Delete">
+                    <button onClick={() => handleDelete(p.id)} className="w-7 h-7 border border-gray-300 text-[#1A1A1A] flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" title="Delete">
                       <Trash2 size={12} />
                     </button>
                   </div>

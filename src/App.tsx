@@ -44,7 +44,7 @@ function App() {
       <CartProvider>
         <WishlistProvider>
           <BrowserRouter>
-            <div className="min-h-screen flex flex-col bg-[#FCFBF9]">
+            <div className="min-h-screen flex flex-col bg-[#0A0A0A]">
               <Routes>
                 {/* Admin Routes without Header/Footer */}
                 <Route path="/admin" element={

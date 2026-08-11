@@ -103,14 +103,14 @@ export const BannerAdmin = () => {
   };
 
   return (
-    <div>
+    <div className="text-[#1A1A1A]">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="font-display text-[24px] md:text-[28px]">Hero Banner Manager</h1>
-          <p className="text-[12px] opacity-60 mt-1">Update hero slideshow images, text, and CTAs</p>
+          <h1 className="font-display text-[24px] md:text-[28px] text-[#1A1A1A]">Hero Banner Manager</h1>
+          <p className="text-[12px] text-gray-600 mt-1">Update hero slideshow images, text, and CTAs</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={addBanner} className="border px-4 py-2.5 text-[11px] tracking-widest uppercase flex items-center gap-2 hover:bg-black hover:text-white transition-colors">
+          <button onClick={addBanner} className="border border-gray-300 bg-white text-[#1A1A1A] px-4 py-2.5 text-[11px] tracking-widest uppercase flex items-center gap-2 hover:bg-black hover:text-white transition-colors">
             <Plus size={13} />Add Slide
           </button>
           <button
@@ -124,30 +124,30 @@ export const BannerAdmin = () => {
 
       <div className="mt-6 space-y-6">
         {banners.map((banner, index) => (
-          <div key={index} className="bg-white border">
+          <div key={index} className="bg-white border border-gray-200 text-[#1A1A1A]">
             {/* Banner Header */}
-            <div className="flex items-center justify-between px-5 py-3 bg-[#F8F6F3] border-b">
-              <div className="flex items-center gap-2 text-[12px] font-medium">
-                <Image size={14} className="opacity-50" />
+            <div className="flex items-center justify-between px-5 py-3 bg-[#F8F6F3] border-b border-gray-200 text-[#1A1A1A]">
+              <div className="flex items-center gap-2 text-[12px] font-medium text-[#1A1A1A]">
+                <Image size={14} className="text-gray-500" />
                 Slide {index + 1} of {banners.length}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => moveBanner(index, 'up')} disabled={index === 0} className="w-7 h-7 border flex items-center justify-center hover:bg-black hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                <button onClick={() => moveBanner(index, 'up')} disabled={index === 0} className="w-7 h-7 border border-gray-300 text-[#1A1A1A] flex items-center justify-center hover:bg-black hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                   <ArrowUp size={12} />
                 </button>
-                <button onClick={() => moveBanner(index, 'down')} disabled={index === banners.length - 1} className="w-7 h-7 border flex items-center justify-center hover:bg-black hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                <button onClick={() => moveBanner(index, 'down')} disabled={index === banners.length - 1} className="w-7 h-7 border border-gray-300 text-[#1A1A1A] flex items-center justify-center hover:bg-black hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                   <ArrowDown size={12} />
                 </button>
-                <button onClick={() => removeBanner(index)} className="w-7 h-7 border flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
+                <button onClick={() => removeBanner(index)} className="w-7 h-7 border border-gray-300 text-[#1A1A1A] flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
                   <Trash2 size={12} />
                 </button>
               </div>
             </div>
 
-            <div className="p-4 md:p-6 grid md:grid-cols-[240px_1fr] gap-6">
+            <div className="p-4 md:p-6 grid md:grid-cols-[240px_1fr] gap-6 text-[#1A1A1A]">
               {/* Image Preview */}
               <div>
-                <div className="aspect-[3/2] bg-[#F8F6F3] overflow-hidden mb-3 border">
+                <div className="aspect-[3/2] bg-[#F8F6F3] overflow-hidden mb-3 border border-gray-200">
                   <img
                     src={banner.image}
                     alt="Banner preview"
@@ -158,24 +158,24 @@ export const BannerAdmin = () => {
 
                 {/* URL Input */}
                 <div className="space-y-2">
-                  <label className="block text-[10px] uppercase tracking-widest opacity-60 flex items-center gap-1">
+                  <label className="block text-[10px] uppercase tracking-widest text-gray-700 font-semibold flex items-center gap-1">
                     <LinkIcon size={10} />Update via URL
                   </label>
                   <input
                     value={urlInputs[index] || ''}
                     onChange={e => setUrlInputs(urlInputs.map((u, i) => i === index ? e.target.value : u))}
                     placeholder="Paste image URL..."
-                    className="w-full border px-3 py-2 text-[12px] focus:outline-none focus:border-black"
+                    className="w-full border border-gray-300 bg-white px-3 py-2 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-black"
                   />
                   <button
                     onClick={() => applyUrl(index)}
-                    className="w-full border px-3 py-2 text-[11px] uppercase tracking-widest hover:bg-black hover:text-white transition-colors"
+                    className="w-full border border-gray-300 text-[#1A1A1A] px-3 py-2 text-[11px] uppercase tracking-widest hover:bg-black hover:text-white transition-colors"
                   >
                     Apply URL
                   </button>
 
                   {/* File Upload */}
-                  <label className="block text-[10px] uppercase tracking-widest opacity-60 mt-3 flex items-center gap-1">
+                  <label className="block text-[10px] uppercase tracking-widest text-gray-700 font-semibold mt-3 flex items-center gap-1">
                     <Upload size={10} />Upload Image File
                   </label>
                   <input
@@ -187,7 +187,7 @@ export const BannerAdmin = () => {
                   />
                   <button
                     onClick={() => fileRefs.current[index]?.click()}
-                    className="w-full border border-dashed px-3 py-2.5 text-[11px] uppercase tracking-widest hover:bg-[#F8F6F3] transition-colors flex items-center justify-center gap-2"
+                    className="w-full border border-gray-300 border-dashed text-[#1A1A1A] px-3 py-2.5 text-[11px] uppercase tracking-widest hover:bg-[#F8F6F3] transition-colors flex items-center justify-center gap-2"
                   >
                     <Upload size={13} />Choose Image File
                   </button>
@@ -195,42 +195,42 @@ export const BannerAdmin = () => {
               </div>
 
               {/* Text Fields */}
-              <div className="space-y-4">
+              <div className="space-y-4 text-[#1A1A1A]">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest opacity-60 mb-1.5">Subtitle / Collection Label</label>
+                  <label className="block text-[10px] uppercase tracking-widest text-gray-700 font-semibold mb-1.5">Subtitle / Collection Label</label>
                   <input
                     value={banner.subtitle}
                     onChange={e => updateField(index, 'subtitle', e.target.value)}
                     placeholder="e.g. The Crown Vault · Signature Collection"
-                    className="w-full border px-4 py-2.5 text-[13px] focus:outline-none focus:border-black"
+                    className="w-full border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest opacity-60 mb-1.5">Heading (Large Text)</label>
+                  <label className="block text-[10px] uppercase tracking-widest text-gray-700 font-semibold mb-1.5">Heading (Large Text)</label>
                   <input
                     value={banner.heading}
                     onChange={e => updateField(index, 'heading', e.target.value)}
                     placeholder="e.g. ROOH Fragrances."
-                    className="w-full border px-4 py-2.5 text-[13px] focus:outline-none focus:border-black"
+                    className="w-full border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest opacity-60 mb-1.5">Description</label>
+                  <label className="block text-[10px] uppercase tracking-widest text-gray-700 font-semibold mb-1.5">Description</label>
                   <textarea
                     value={banner.description}
                     onChange={e => updateField(index, 'description', e.target.value)}
                     placeholder="Short description for this banner..."
-                    className="w-full border px-4 py-2.5 text-[13px] focus:outline-none focus:border-black"
+                    className="w-full border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-black"
                     rows={3}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest opacity-60 mb-1.5">CTA Button Text</label>
+                  <label className="block text-[10px] uppercase tracking-widest text-gray-700 font-semibold mb-1.5">CTA Button Text</label>
                   <input
                     value={banner.cta}
                     onChange={e => updateField(index, 'cta', e.target.value)}
                     placeholder="e.g. Explore Collection"
-                    className="w-full border px-4 py-2.5 text-[13px] focus:outline-none focus:border-black"
+                    className="w-full border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-black"
                   />
                 </div>
               </div>
@@ -254,7 +254,7 @@ export const BannerAdmin = () => {
               localStorage.removeItem('tcv_hero_banners');
             }
           }}
-          className="border px-6 py-3 text-[11px] tracking-widest uppercase hover:bg-gray-50 transition-colors"
+          className="border border-gray-300 text-[#1A1A1A] bg-white px-6 py-3 text-[11px] tracking-widest uppercase hover:bg-gray-50 transition-colors"
         >
           Reset to Default
         </button>
