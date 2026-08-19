@@ -36,7 +36,7 @@ export const Contact = () => {
             <div className="space-y-5 mb-10">
               {[
                 { icon: MessageCircle, label: 'WhatsApp Order', value: '+92 321 7244813 — Instant Reply' },
-                { icon: Mail, label: 'Email', value: 'support@thecrownvault.pk' },
+                { icon: Mail, label: 'Email', value: '' },
                 { icon: MapPin, label: 'Location', value: 'Rawalpindi, Punjab — Nationwide Delivery' },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-4 border-b border-white/6 pb-5">

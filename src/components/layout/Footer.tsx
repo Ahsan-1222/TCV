@@ -72,7 +72,7 @@ export const Footer = () => {
             <h4 className="text-[9px] tracking-[0.3em] uppercase text-crown-gold mb-5">Contact</h4>
             <ul className="space-y-3 text-[12px] text-white/35">
               <li>+92 321 7244813</li>
-              <li>support@thecrownvault.pk</li>
+              <li>tcv.vault@gmail.com</li>
               <li>Rawalpindi, Punjab, PK</li>
             </ul>
             <a
