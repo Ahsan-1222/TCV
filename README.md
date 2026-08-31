@@ -11,8 +11,8 @@ Premium, modern, luxury e-commerce website built from scratch with:
 ## Brand
 **TcV — THE CROWN VAULT**
 - Luxury Curations - Pakistan Market Adaptation
-- Categories: Perfumes (Primary), Ladies Bags, Jewellery (Watches blueprint as extension)
-- Assets: ROOH Fragrances (AQUA, AVANT, NOIR, GOLD, VELVET)
+- Categories: Perfumes (Primary), Ladies Bags, Watches
+- Assets: ROOH Fragrances (BLOOM, VELVET SPICE, NOIR)
 
 ### Reference Inspiration
 Rumitrends.com layout analyzed — replicated only:
@@ -26,7 +26,7 @@ Branding, colors, images, texts are original TcV luxury.
 ## Pages Implemented
 - `/` Home — Hero, Featured Categories, Featured Products, Bundle Offer (Pack of 3 inspired by Rumi), Best Sellers, Brand Story Blueprint, Testimonials, Footer
 - `/shop` — All products, category filter, price filter, sort
-- `/categories/:slug` — perfume | bags | jewellery
+- `/categories/:slug` — perfume | bags | watches
 - `/product/:slug` — Gallery, scent notes, reviews, quantity, wishlist, WhatsApp inquiry (COD, Nationwide)
 - `/wishlist`
 - `/search?q=`

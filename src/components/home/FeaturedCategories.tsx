@@ -1,41 +1,11 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-
-const cats = [
-  {
-    title: 'Perfume',
-    label: 'Signature Fragrances',
-    desc: 'Long-lasting Extrait • Gift Box Ready',
-    image: `/assets/products/${encodeURIComponent('WhatsApp Image 2026-07-17 at 8.30.52 PM (2).jpeg')}`,
-    slug: 'perfume',
-    count: '05',
-    unit: 'Scents',
-    accent: '#C9A86A',
-  },
-  {
-    title: 'Bags',
-    label: 'Ladies Collection',
-    desc: 'Office Totes • Evening Clutches',
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=900&auto=format',
-    slug: 'bags',
-    count: '12',
-    unit: 'Designs',
-    accent: '#1A1A1A',
-  },
-  {
-    title: 'Jewellery',
-    label: 'Fine Pieces',
-    desc: 'Polished Gold • Diamond Dust',
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=900&auto=format',
-    slug: 'jewellery',
-    count: '08',
-    unit: 'Pieces',
-    accent: '#C9A86A',
-  },
-];
+import { useCategoryBanners } from '../../hooks/useCategoryBanners';
 
 export const FeaturedCategories = () => {
+  const cats = useCategoryBanners();
+
   return (
     <section className="bg-[#0A0A0A] py-14 sm:py-20 md:py-28 overflow-hidden">
       <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12">

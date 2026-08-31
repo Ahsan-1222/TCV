@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { sendOrderNotificationEmail } from '../services/emailService';
 
 export const Checkout = () => {
   const { items, total, clearCart } = useCart();
@@ -22,9 +23,10 @@ export const Checkout = () => {
       const orderId = 'TCV-' + Math.random().toString(36).slice(2, 8).toUpperCase();
       let screenshotData = null;
 
-      const shipping = total > 2500 ? 0 : 199;
+      const shipping = 200;
       const discount = payment === 'easypaisa' ? 100 : 0;
       const finalTotal = total + shipping - discount;
+      let savedOrderPayload: any = null;
 
       try {
         if (payment === 'easypaisa' && form.screenshot) {
@@ -55,6 +57,7 @@ export const Checkout = () => {
         const addDocPromise = addDoc(collection(db, 'orders'), orderData);
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Firebase timeout")), 5000));
         await Promise.race([addDocPromise, timeoutPromise]);
+        savedOrderPayload = { ...orderData, createdAt: new Date().toISOString() };
       } catch (firebaseError) {
         console.warn("Firebase failed, falling back to local storage:", firebaseError);
         // Fallback to local storage if Firebase is not properly configured
@@ -77,8 +80,16 @@ export const Checkout = () => {
           const existing = JSON.parse(localStorage.getItem('tcv_orders') || '[]');
           localStorage.setItem('tcv_orders', JSON.stringify([fallbackOrder, ...existing]));
         } catch {}
+        savedOrderPayload = fallbackOrder;
       }
       
+      // Send transactional email notification after successful order save
+      if (savedOrderPayload) {
+        sendOrderNotificationEmail(savedOrderPayload).catch(err => {
+          console.error("Email notification dispatch error:", err);
+        });
+      }
+
       clearCart();
       navigate(`/checkout/success?order=${orderId}`);
     } catch (error) {
@@ -98,7 +109,7 @@ export const Checkout = () => {
     </div>
   );
 
-  const shipping = total > 2500 ? 0 : 199;
+  const shipping = 200;
   const discount = payment === 'easypaisa' ? 100 : 0;
   const finalTotal = total + shipping - discount;
 
@@ -207,11 +218,14 @@ export const Checkout = () => {
       <div className="bg-[#111111] border border-white/8 p-5 sm:p-6 h-fit lg:sticky lg:top-28">
         <h3 className="font-display text-[20px] text-white mb-5">Order Summary</h3>
         <div className="space-y-4">
-          {items.map(i=>(
-            <div key={i.product.id} className="flex gap-3">
-              <img src={(i.product.images.find(img=>img.isMain)||i.product.images[0]).url} alt={i.product.name} className="w-12 h-14 object-cover bg-[#1A1A1A]" />
+          {items.map((i, idx)=>(
+            <div key={`${i.product.id}_${i.selectedColor || idx}`} className="flex gap-3">
+              <img src={i.selectedImage || (i.product.images.find(img=>img.isMain)||i.product.images[0]).url} alt={i.product.name} className="w-12 h-14 object-cover bg-[#1A1A1A] border border-white/10" />
               <div className="flex-1">
                 <div className="text-[11px] uppercase font-medium text-white">{i.product.name}</div>
+                {i.selectedColor && (
+                  <div className="text-[9px] uppercase text-crown-gold font-medium mt-0.5">Color: {i.selectedColor}</div>
+                )}
                 <div className="text-[10px] text-white/35 mt-0.5">Qty: {i.quantity}</div>
               </div>
               <div className="text-[12px] font-semibold text-crown-gold">{formatPrice(i.product.price*i.quantity)}</div>
@@ -220,7 +234,7 @@ export const Checkout = () => {
         </div>
         <div className="border-t border-white/8 mt-5 pt-4 space-y-2 text-[13px]">
           <div className="flex justify-between text-white/45"><span>Subtotal</span><span className="text-white">{formatPrice(total)}</span></div>
-          <div className="flex justify-between text-white/45"><span>Shipping</span><span className="text-white">{shipping===0?'Free':formatPrice(shipping)}</span></div>
+          <div className="flex justify-between text-white/45"><span>Shipping</span><span className="text-white">{formatPrice(shipping)}</span></div>
           {discount > 0 && (
             <div className="flex justify-between text-crown-gold font-medium"><span>Online Discount</span><span>- {formatPrice(discount)}</span></div>
           )}

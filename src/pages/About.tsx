@@ -28,9 +28,9 @@ export const About = () => {
                 <span className="italic font-light text-crown-gold">Vault.</span>
               </h1>
               <div className="mt-8 space-y-5 text-[13px] sm:text-[14px] leading-[1.95] text-white/45 font-light max-w-[500px]">
-                <p>THE CROWN VAULT is luxury curations adapted for Pakistan. We operate on four pillars: Perfume — primary focus, Bags — handbag collection, Watches — timepiece layout, Jewellery — fine pieces.</p>
-                <p>Every product shot follows soft window photography, macro texture shots, and white marble staging. From stitch count in our office totes to fine chain gauge in our pendants, we obsess over detail.</p>
-                <p>ROOH Fragrances is our flagship perfume house — AQUA, AVANT, NOIR, GOLD, and VELVET. Each an olfactory story, long-lasting and luxurious.</p>
+                <p>THE CROWN VAULT is luxury curations adapted for Pakistan. We operate on key pillars: Perfumes — primary focus, Bags — handbag collection, Watches — luxury timepiece selection.</p>
+                <p>Every product shot follows soft window photography, macro texture shots, and clean staging. From stitch count in our office totes to precision bezel design in our watches, we obsess over detail.</p>
+                <p>ROOH Fragrances is our flagship perfume house — BLOOM, VELVET SPICE, and NOIR. Each an olfactory story, long-lasting and luxurious.</p>
               </div>
             </motion.div>
 
@@ -43,7 +43,7 @@ export const About = () => {
             >
               <img
                 src={`/assets/products/${encodeURIComponent('WhatsApp Image 2026-07-17 at 8.30.51 PM (1).jpeg')}`}
-                alt="ROOH Gold Velvet"
+                alt="ROOH Luxury Collection"
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/60 to-transparent" />
@@ -79,9 +79,9 @@ export const About = () => {
         <div className="text-[9px] tracking-[0.4em] uppercase text-crown-gold mb-6">What We Offer</div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/5">
           {[
-            { title: 'Perfumes', sub: 'Primary Focus', desc: 'ROOH Fragrances — AQUA, AVANT, NOIR, GOLD, VELVET. Extrait concentration, long-lasting projection.' },
+            { title: 'Perfumes', sub: 'Primary Focus', desc: 'ROOH Fragrances — BLOOM, VELVET SPICE, and NOIR. Extrait concentration, long-lasting projection.' },
             { title: 'Bags', sub: 'Ladies Collection', desc: 'Structured office totes, evening clutches and crossbody designs. Premium stitch quality.' },
-            { title: 'Jewellery', sub: 'Fine Pieces', desc: 'Highly polished gold, diamond dust settings. Pendant chains, ear pieces, and sets.' },
+            { title: 'Watches', sub: 'Timepiece Layout', desc: 'Precision craftsmanship, luxury stainless steel bezels, and elegant mesh straps.' },
             { title: 'Bundles', sub: 'Gift Ready', desc: 'Curated gift boxes. The Signature Trio and seasonal collections, COD available.' },
           ].map((item, i) => (
             <motion.div

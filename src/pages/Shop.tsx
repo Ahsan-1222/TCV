@@ -8,7 +8,7 @@ const categories: { label: string; value: ProductCategory | 'all' }[] = [
   { label: 'All', value: 'all' },
   { label: 'Perfume', value: 'perfume' },
   { label: 'Bags', value: 'bags' },
-  { label: 'Jewellery', value: 'jewellery' },
+  { label: 'Watches', value: 'watches' },
 ];
 
 export const Shop = () => {
@@ -42,7 +42,7 @@ export const Shop = () => {
               Shop All
             </h1>
             <p className="text-[12px] sm:text-[13px] text-white/40 mt-4 max-w-[400px] leading-relaxed">
-              Perfumes, ladies bags & jewellery. Signature scent positioning, long-lasting projection, gift box integration.
+              Perfumes, ladies bags & watches. Signature scent positioning, long-lasting projection, gift box integration.
             </p>
           </motion.div>
 

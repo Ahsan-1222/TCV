@@ -4,13 +4,13 @@ const reviews = [
   {
     name: 'M Usman',
     city: 'Rawalpindi',
-    text: 'ROOH AVANT is my signature now. Luxury packaging and WhatsApp order made it so easy. COD delivered in 2 days.',
+    text: 'ROOH VELVET SPICE is my signature now. Luxury packaging and WhatsApp order made it so easy. COD delivered in 2 days.',
     rating: 5,
   },
   {
     name: 'Ahsan M.',
     city: 'Karachi',
-    text: 'The Crown Vault team curated perfectly. GOLD extrait lasts entire wedding. Highly polished gold bottle looks premium.',
+    text: 'The Crown Vault team curated perfectly. Watches collection looks incredibly luxurious. Signature timepiece design is top notch.',
     rating: 5,
   },
   {

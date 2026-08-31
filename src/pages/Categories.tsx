@@ -9,9 +9,9 @@ export const CategoriesPage = () => {
   const title = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'All Categories';
 
   const descriptions: Record<string, string> = {
-    perfume: 'Signature scents, long-lasting projection, gift box integration. ROOH AQUA, AVANT, NOIR, GOLD, VELVET.',
+    perfume: 'Signature scents, long-lasting projection, gift box integration. ROOH BLOOM, VELVET SPICE, and NOIR.',
     bags: 'Structured office totes and evening clutch collection. Matte black leather with polished gold hardware.',
-    jewellery: 'Highly polished gold, abstract pendant, fine chain gauge, diamond dust stone setting.',
+    watches: 'Precision timepieces & luxury watch designs. Craftsmanship, stainless steel bezels, and timeless elegance.',
   };
 
   return (
@@ -24,7 +24,7 @@ export const CategoriesPage = () => {
         </div>
 
       <div className="flex gap-2 mb-8 border-b border-white/10 pb-6">
-        {['perfume', 'bags', 'jewellery'].map(cat => (
+        {['perfume', 'bags', 'watches'].map(cat => (
           <Link
             key={cat}
             to={`/categories/${cat}`}

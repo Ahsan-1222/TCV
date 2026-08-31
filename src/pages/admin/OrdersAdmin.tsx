@@ -152,16 +152,19 @@ export const OrdersAdmin = () => {
                   <h4 className="text-[11px] uppercase tracking-[0.1em] text-gray-500 font-semibold mb-5 flex items-center gap-2"><Package size={14}/> Items Ordered</h4>
                   <div className="space-y-5">
                     {order.items?.map((item: any, i: number) => {
-                      const mainImage = item.product?.images?.find((img: any) => img.isMain) || item.product?.images?.[0];
+                      const mainImage = item.selectedImage || item.product?.images?.find((img: any) => img.isMain)?.url || item.product?.images?.[0]?.url;
                       return (
                         <div key={i} className="flex gap-4">
                           <img 
-                            src={mainImage?.url || 'https://via.placeholder.com/150'} 
+                            src={mainImage || 'https://via.placeholder.com/150'} 
                             alt={item.product?.name} 
                             className="w-16 h-20 object-cover bg-gray-100 border border-gray-200 rounded-sm"
                           />
                           <div className="flex-1">
                             <div className="text-[13px] font-medium uppercase text-[#1A1A1A]">{item.product?.name}</div>
+                            {item.selectedColor && (
+                              <div className="text-[11px] font-semibold text-[#C9A86A] uppercase mt-0.5">Selected Color: {item.selectedColor}</div>
+                            )}
                             <div className="text-[12px] text-gray-600 mt-1">Qty: {item.quantity}</div>
                             <div className="text-[13px] font-medium text-[#1A1A1A] mt-2">{formatPrice(item.product?.price * item.quantity)}</div>
                           </div>

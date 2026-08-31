@@ -1,8 +1,9 @@
-export type ProductCategory = 'perfume' | 'jewellery' | 'bags' | 'watches';
+export type ProductCategory = 'perfume' | 'bags' | 'watches';
 
 export interface ProductImage {
   url: string;
   alt: string;
+  color?: string;
   isMain?: boolean;
 }
 
@@ -62,6 +63,8 @@ export interface CartItem {
   product: Product;
   quantity: number;
   variant?: ProductVariant;
+  selectedColor?: string;
+  selectedImage?: string;
 }
 
 export interface WishlistItem {

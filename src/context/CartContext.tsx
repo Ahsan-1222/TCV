@@ -4,9 +4,9 @@ import type { CartItem, Product } from '../types';
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number, selectedColor?: string, selectedImage?: string) => void;
+  removeFromCart: (productId: string, selectedColor?: string) => void;
+  updateQuantity: (productId: string, quantity: number, selectedColor?: string) => void;
   clearCart: () => void;
   total: number;
   itemCount: number;
@@ -27,24 +27,36 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('tcv_cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product, quantity = 1) => {
+  const addToCart = (product: Product, quantity = 1, selectedColor?: string, selectedImage?: string) => {
+    const defaultImage = (product.images.find(i => i.isMain) || product.images[0])?.url;
+    const color = selectedColor || (product.images[0]?.color ? product.images[0].color : undefined);
+    const imgUrl = selectedImage || defaultImage;
+
     setItems(prev => {
-      const existing = prev.find(i => i.product.id === product.id);
-      if (existing) {
-        return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + quantity } : i);
+      const existingIdx = prev.findIndex(i => i.product.id === product.id && i.selectedColor === color);
+      if (existingIdx >= 0) {
+        const updated = [...prev];
+        updated[existingIdx] = {
+          ...updated[existingIdx],
+          quantity: updated[existingIdx].quantity + quantity
+        };
+        return updated;
       }
-      return [...prev, { product, quantity }];
+      return [...prev, { product, quantity, selectedColor: color, selectedImage: imgUrl }];
     });
     setIsOpen(true);
   };
 
-  const removeFromCart = (productId: string) => {
-    setItems(prev => prev.filter(i => i.product.id !== productId));
+  const removeFromCart = (productId: string, selectedColor?: string) => {
+    setItems(prev => prev.filter(i => !(i.product.id === productId && i.selectedColor === selectedColor)));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) removeFromCart(productId);
-    else setItems(prev => prev.map(i => i.product.id === productId ? { ...i, quantity } : i));
+  const updateQuantity = (productId: string, quantity: number, selectedColor?: string) => {
+    if (quantity <= 0) {
+      removeFromCart(productId, selectedColor);
+    } else {
+      setItems(prev => prev.map(i => (i.product.id === productId && i.selectedColor === selectedColor) ? { ...i, quantity } : i));
+    }
   };
 
   const clearCart = () => setItems([]);

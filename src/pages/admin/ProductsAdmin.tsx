@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { products as initialProducts } from '../../data/products';
 import type { Product } from '../../types';
 import { formatPrice } from '../../lib/utils';
-import { Plus, Edit3, Trash2, Upload } from 'lucide-react';
+import { Plus, Edit3, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
+import { subscribeProducts, saveProductToDB, deleteProductFromDB, uploadImageFile } from '../../services/dbService';
 
 export const ProductsAdmin = () => {
   const [products, setProducts] = useState<Product[]>(() => {
@@ -17,11 +18,22 @@ export const ProductsAdmin = () => {
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [form, setForm] = useState<Partial<Product>>({
     name: '', price: 0, comparePrice: 0, stock: 0, category: 'perfume',
     shortDescription: '', description: '', featured: false,
     sku: '', tags: [], images: []
   });
+
+  useEffect(() => {
+    const unsubscribe = subscribeProducts((prods) => {
+      if (prods && prods.length > 0) setProducts(prods);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const addImage = () => {
     if (!newImageUrl.trim()) return;
@@ -32,60 +44,96 @@ export const ProductsAdmin = () => {
     setNewImageUrl('');
   };
 
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const uploadedUrl = await uploadImageFile(file, 'products');
+      setForm(prev => ({
+        ...prev,
+        images: [...(prev.images || []), { url: uploadedUrl, alt: prev.name || 'Product Image', isMain: (prev.images || []).length === 0 }]
+      }));
+    } catch (err) {
+      alert('Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const removeImage = (index: number) => {
+    setForm(prev => {
+      const newImgs = (prev.images || []).filter((_, i) => i !== index);
+      if (newImgs.length > 0 && !newImgs.some(i => i.isMain)) {
+        newImgs[0].isMain = true;
+      }
+      return { ...prev, images: newImgs };
+    });
+  };
+
+  const updateImageColor = (index: number, color: string) => {
     setForm(prev => ({
       ...prev,
-      images: (prev.images || []).filter((_, i) => i !== index)
+      images: (prev.images || []).map((img, i) => i === index ? { ...img, color } : img)
     }));
   };
 
-  const persist = (list: Product[]) => {
-    localStorage.setItem('tcv_admin_products', JSON.stringify(list));
-    localStorage.setItem('tcv_products', JSON.stringify(list));
+  const setMainImage = (index: number) => {
+    setForm(prev => ({
+      ...prev,
+      images: (prev.images || []).map((img, i) => ({ ...img, isMain: i === index }))
+    }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name) return alert('Name required');
-    const finalImages = form.images && form.images.length > 0
-      ? form.images
-      : [{ url: `https://picsum.photos/seed/${Date.now()}/600/800`, alt: form.name!, isMain: true }];
+    setIsSaving(true);
+    try {
+      const finalImages = form.images && form.images.length > 0
+        ? form.images
+        : [{ url: `https://picsum.photos/seed/${Date.now()}/600/800`, alt: form.name!, isMain: true }];
 
-    const comparePrice = Number(form.comparePrice) || 0;
+      const comparePrice = Number(form.comparePrice) || 0;
 
-    const newProduct: Product = {
-      id: editing?.id || Math.random().toString(36).slice(2, 9),
-      sku: form.sku || `SKU-${Date.now()}`,
-      name: form.name!,
-      slug: form.name!.toLowerCase().replace(/\s+/g, '-'),
-      description: form.description || '',
-      shortDescription: form.shortDescription || '',
-      category: (form.category as any) || 'perfume',
-      price: Number(form.price) || 0,
-      comparePrice: comparePrice > 0 ? comparePrice : undefined,
-      stock: Number(form.stock) || 0,
-      images: finalImages,
-      tags: form.tags || [],
-      featured: !!form.featured,
-      rating: editing?.rating || 4.8,
-      reviewCount: editing?.reviewCount || 0,
-      reviews: editing?.reviews || [],
-      createdAt: editing?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    let list;
-    if (editing) list = products.map(p => p.id === editing.id ? { ...newProduct, id: editing.id } : p);
-    else list = [newProduct, ...products];
-    setProducts(list);
-    persist(list);
-    setShowForm(false);
-    setEditing(null);
+      const newProduct: Product = {
+        id: editing?.id || Math.random().toString(36).slice(2, 9),
+        sku: form.sku || `SKU-${Date.now()}`,
+        name: form.name!,
+        slug: form.name!.toLowerCase().replace(/\s+/g, '-'),
+        description: form.description || '',
+        shortDescription: form.shortDescription || '',
+        category: (form.category as any) || 'perfume',
+        price: Number(form.price) || 0,
+        comparePrice: comparePrice > 0 ? comparePrice : undefined,
+        stock: Number(form.stock) || 0,
+        images: finalImages,
+        tags: form.tags || [],
+        featured: !!form.featured,
+        rating: editing?.rating || 4.8,
+        reviewCount: editing?.reviewCount || 0,
+        reviews: editing?.reviews || [],
+        createdAt: editing?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveProductToDB(newProduct);
+
+      setShowForm(false);
+      setEditing(null);
+    } catch (err) {
+      console.error('Error saving product to DB:', err);
+      alert('Error saving product to database');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Delete product?')) return;
-    const list = products.filter(p => p.id !== id);
-    setProducts(list);
-    persist(list);
+    try {
+      await deleteProductFromDB(id);
+    } catch (err) {
+      console.error('Error deleting product from DB:', err);
+      alert('Error deleting product from database');
+    }
   };
 
   const openAdd = () => {
@@ -130,7 +178,7 @@ export const ProductsAdmin = () => {
             <input type="number" placeholder="e.g. 5450" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
           </div>
           <div>
-            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Cut / Compare Price (PKR)</label>
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium font-medium">Cut / Compare Price (PKR)</label>
             <input type="number" placeholder="Original price shown crossed out (e.g. 7500)" value={form.comparePrice || ''} onChange={e => setForm({ ...form, comparePrice: Number(e.target.value) })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
             <p className="text-[10px] text-gray-500 mt-1">Leave 0 to not show a cut price</p>
           </div>
@@ -144,7 +192,6 @@ export const ProductsAdmin = () => {
             <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value as any })} className="border border-gray-300 px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black bg-white">
               <option value="perfume">Perfume</option>
               <option value="bags">Bags</option>
-              <option value="jewellery">Jewellery</option>
               <option value="watches">Watches</option>
             </select>
           </div>
@@ -164,27 +211,60 @@ export const ProductsAdmin = () => {
             <textarea placeholder="Full product details, features, scent notes..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" rows={3} />
           </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Product Images (Paste URLs)</label>
-            <div className="flex gap-2 mb-2">
-              <input placeholder="Paste image URL and press Add..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addImage(); }} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] flex-1 focus:outline-none focus:border-black" />
-              <button onClick={addImage} className="bg-black text-white px-5 py-2 text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-colors shrink-0">Add</button>
+          {/* Product Images section */}
+          <div className="md:col-span-2 space-y-3">
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 font-semibold">
+              Product Images (Save Dynamically to DB)
+            </label>
+            
+            <div className="flex flex-wrap gap-2">
+              <input placeholder="Paste image URL and click Add..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addImage(); }} className="border border-gray-300 bg-white px-4 py-2 text-[13px] text-[#1A1A1A] flex-1 focus:outline-none focus:border-black min-w-[200px]" />
+              <button type="button" onClick={addImage} className="bg-black text-white px-5 py-2 text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-colors shrink-0">Add URL</button>
+              
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={e => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="border border-gray-300 bg-white text-[#1A1A1A] px-4 py-2 text-[11px] uppercase tracking-widest hover:bg-gray-100 transition-colors flex items-center gap-2 shrink-0 disabled:opacity-50"
+              >
+                <Upload size={13} /> {isUploading ? 'Uploading...' : 'Upload Image File'}
+              </button>
             </div>
-            <div className="flex gap-3 flex-wrap mt-3">
+
+            <div className="flex gap-4 flex-wrap mt-3">
               {(form.images || []).map((img, i) => (
-                <div key={i} className="relative w-20 h-24 border border-gray-300">
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => removeImage(i)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors">✕</button>
-                  {img.isMain && <span className="absolute bottom-1 left-1 bg-black text-white text-[9px] px-1.5 py-0.5">MAIN</span>}
+                <div key={i} className="relative w-32 border border-gray-300 bg-gray-50 p-1.5 flex flex-col items-center group">
+                  <div className="relative w-full h-24 overflow-hidden mb-1.5">
+                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => removeImage(i)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors z-10">✕</button>
+                  </div>
+                  <input
+                    placeholder="Color (e.g. Black, Gold)"
+                    value={img.color || ''}
+                    onChange={e => updateImageColor(i, e.target.value)}
+                    className="w-full text-[10px] border border-gray-300 px-1.5 py-1 mb-1.5 bg-white focus:outline-none focus:border-black text-[#1A1A1A]"
+                  />
+                  <button type="button" onClick={() => setMainImage(i)} className={`w-full text-[9px] py-1 text-center font-bold uppercase transition-colors ${img.isMain ? 'bg-black text-white' : 'bg-gray-200 text-gray-700 hover:bg-black hover:text-white'}`}>
+                    {img.isMain ? 'MAIN' : 'Set Main'}
+                  </button>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="md:col-span-2 flex flex-wrap gap-2 mt-4">
-            <button onClick={handleSave} className="bg-black text-white px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-800 transition-colors">Save Product</button>
+            <button onClick={handleSave} disabled={isSaving} className="bg-black text-white px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-800 transition-colors disabled:opacity-50">
+              {isSaving ? 'Saving to DB...' : 'Save Product'}
+            </button>
             <button onClick={() => { setShowForm(false); setEditing(null); }} className="border border-gray-300 text-[#1A1A1A] px-6 py-2.5 text-[11px] tracking-widest uppercase hover:bg-gray-50 transition-colors">Cancel</button>
-            <span className="ml-auto flex items-center gap-2 text-[11px] text-gray-500"><Upload size={14} /> Multiple Images Supported</span>
+            <span className="ml-auto flex items-center gap-2 text-[11px] text-gray-500"><ImageIcon size={14} /> Dynamically Saved to Database</span>
           </div>
         </div>
       )}

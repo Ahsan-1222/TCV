@@ -34,11 +34,11 @@ export const BrandStory = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
-            className="relative aspect-[4/3] sm:aspect-[3/4] w-full max-h-[420px] sm:max-h-none overflow-hidden rounded-sm bg-[#111]"
+            className="relative aspect-[4/5] sm:aspect-[4/5] w-full max-h-[520px] sm:max-h-none overflow-hidden rounded-sm bg-[#111] border border-white/10 shadow-2xl"
           >
             <img
-              src={`/assets/products/${encodeURIComponent('WhatsApp Image 2026-07-17 at 8.30.52 PM (1).jpeg')}`}
-              alt="TCV Curation"
+              src="/assets/products/curation-art.jpg"
+              alt="TCV Art of Curation"
               className="w-full h-full object-cover object-center"
             />
             {/* Gold overlay strip */}
@@ -108,18 +108,18 @@ export const BrandStory = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.5 }}
-            className="relative aspect-[4/3] sm:aspect-[3/4] w-full max-w-[520px] mx-auto lg:mx-0 lg:ml-auto overflow-hidden order-1 lg:order-2 rounded-sm"
+            className="relative aspect-[4/5] sm:aspect-[4/5] w-full max-w-[520px] mx-auto lg:mx-0 lg:ml-auto overflow-hidden order-1 lg:order-2 rounded-sm border border-white/10 shadow-2xl"
           >
             <img
-              src={`/assets/products/${encodeURIComponent('WhatsApp Image 2026-07-17 at 8.30.52 PM (1).jpeg')}`}
-              alt="TCV Blueprint"
+              src="/assets/products/curation-art.jpg"
+              alt="TCV Art of Curation"
               className="w-full h-full object-cover object-center transition-transform duration-[3s] ease-out hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/40 to-transparent pointer-events-none" />
             <div className="absolute bottom-0 inset-x-0 h-0.5 bg-crown-gold" />
             {/* Logo watermark */}
-            <div className="absolute bottom-6 right-6 w-16 h-16 bg-white/10 backdrop-blur-md p-3 flex items-center justify-center rounded-full">
-              <img src="/logo.jpg" alt="TCV" className="w-full h-full object-contain brightness-0 invert opacity-80" />
+            <div className="absolute bottom-6 right-6 w-14 h-14 bg-black/40 backdrop-blur-md p-2.5 flex items-center justify-center rounded-full border border-white/10">
+              <img src="/logo.jpg" alt="TCV" className="w-full h-full object-contain brightness-0 invert opacity-90" />
             </div>
           </motion.div>
         </div>

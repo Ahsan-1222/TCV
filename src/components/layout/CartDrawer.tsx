@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const CartDrawer = () => {
   const { items, total, isOpen, setIsOpen, updateQuantity, removeFromCart } = useCart();
-  const shipping = total > 2500 ? 0 : 199;
+  const shipping = 200;
 
   return (
     <AnimatePresence>
@@ -64,16 +64,17 @@ export const CartDrawer = () => {
                   </Link>
                 </div>
               ) : (
-                items.map(item => {
-                  const img = item.product.images.find(i => i.isMain) || item.product.images[0];
+                items.map((item, idx) => {
+                  const defaultImg = (item.product.images.find(i => i.isMain) || item.product.images[0])?.url;
+                  const imgUrl = item.selectedImage || defaultImg;
                   return (
-                    <div key={item.product.id} className="flex gap-4 group">
+                    <div key={`${item.product.id}_${item.selectedColor || idx}`} className="flex gap-4 group">
                       <Link
                         to={`/product/${item.product.slug}`}
                         onClick={() => setIsOpen(false)}
-                        className="w-[76px] h-[90px] bg-[#1A1A1A] flex-shrink-0 overflow-hidden"
+                        className="w-[76px] h-[90px] bg-[#1A1A1A] flex-shrink-0 overflow-hidden border border-white/10"
                       >
-                        <img src={img.url} alt={item.product.name} className="w-full h-full object-cover" />
+                        <img src={imgUrl} alt={item.product.name} className="w-full h-full object-cover" />
                       </Link>
                       <div className="flex-1 min-w-0">
                         <Link
@@ -83,20 +84,26 @@ export const CartDrawer = () => {
                         >
                           {item.product.name}
                         </Link>
-                        <p className="text-[11px] text-white/35 mt-1 line-clamp-1">{item.product.shortDescription}</p>
+                        {item.selectedColor ? (
+                          <div className="inline-block bg-crown-gold/15 text-crown-gold text-[9px] uppercase tracking-wider px-1.5 py-0.5 font-medium mt-1">
+                            Color: {item.selectedColor}
+                          </div>
+                        ) : (
+                          <p className="text-[11px] text-white/35 mt-1 line-clamp-1">{item.product.shortDescription}</p>
+                        )}
 
                         <div className="flex items-center justify-between mt-3">
                           {/* Qty controls */}
                           <div className="flex items-center border border-white/15">
                             <button
-                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedColor)}
                               className="w-7 h-7 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition-all"
                             >
                               <Minus size={11} />
                             </button>
                             <span className="w-7 text-center text-[12px] text-white">{item.quantity}</span>
                             <button
-                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedColor)}
                               className="w-7 h-7 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition-all"
                             >
                               <Plus size={11} />
@@ -107,7 +114,7 @@ export const CartDrawer = () => {
                           </span>
                         </div>
                         <button
-                          onClick={() => removeFromCart(item.product.id)}
+                          onClick={() => removeFromCart(item.product.id, item.selectedColor)}
                           className="text-[9px] tracking-[0.2em] uppercase text-white/25 hover:text-white/60 mt-2 transition-colors"
                         >
                           Remove
@@ -129,8 +136,8 @@ export const CartDrawer = () => {
                   </div>
                   <div className="flex justify-between text-white/50">
                     <span>Shipping</span>
-                    <span className={shipping === 0 ? 'text-crown-gold text-[11px] uppercase tracking-wider' : 'text-white'}>
-                      {shipping === 0 ? 'Free' : formatPrice(shipping)}
+                    <span className="text-white">
+                      {formatPrice(shipping)}
                     </span>
                   </div>
                   <div className="flex justify-between font-semibold border-t border-white/8 pt-2 text-white">
@@ -147,7 +154,7 @@ export const CartDrawer = () => {
                   Checkout — COD Available
                 </Link>
                 <a
-                  href={whatsappLink(cartWhatsAppMessage(items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.price })), total))}
+                  href={whatsappLink(cartWhatsAppMessage(items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.price, color: i.selectedColor })), total))}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full border border-[#25D366] text-[#25D366] text-center py-3.5 text-[10px] tracking-[0.2em] uppercase hover:bg-[#25D366] hover:text-white transition-colors"

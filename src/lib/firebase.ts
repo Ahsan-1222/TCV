@@ -31,6 +31,7 @@ export const collections = {
   orders: "orders",
   users: "users",
   wishlists: "wishlists",
+  banners: "banners",
 };
 
 // Auth roles

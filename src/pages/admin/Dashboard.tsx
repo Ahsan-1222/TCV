@@ -1,21 +1,12 @@
 import { useState, useEffect } from 'react';
-import { products as initialProducts } from '../../data/products';
-import type { Product } from '../../types';
+import { useProducts } from '../../hooks/useProducts';
 import { formatPrice } from '../../lib/utils';
 import { Package, ShoppingBag, Users, TrendingUp, ShoppingCart, Clock } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 
 export const AdminDashboard = () => {
-  const [products] = useState<Product[]>(() => {
-    try {
-      const savedAdmin = localStorage.getItem('tcv_admin_products');
-      if (savedAdmin) return JSON.parse(savedAdmin);
-      const saved = localStorage.getItem('tcv_products');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return initialProducts;
-  });
+  const products = useProducts();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);

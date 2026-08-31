@@ -5,7 +5,7 @@ import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 
 export const Cart = () => {
   const { items, total, updateQuantity, removeFromCart } = useCart();
-  const shipping = total > 2500 ? 0 : 199;
+  const shipping = 200;
   const grandTotal = total + shipping;
 
   if (items.length === 0) {
@@ -39,12 +39,13 @@ export const Cart = () => {
         <div className="grid lg:grid-cols-[1fr_380px] gap-8 lg:gap-12">
           {/* Items */}
           <div className="space-y-3">
-            {items.map(item => {
-              const img = item.product.images.find(i => i.isMain) || item.product.images[0];
+            {items.map((item, idx) => {
+              const defaultImg = (item.product.images.find(i => i.isMain) || item.product.images[0])?.url;
+              const imgUrl = item.selectedImage || defaultImg;
               return (
-                <div key={item.product.id} className="flex gap-4 border border-white/8 bg-[#111111] p-4">
-                  <Link to={`/product/${item.product.slug}`} className="w-20 h-24 sm:w-24 sm:h-28 bg-[#1A1A1A] flex-shrink-0 overflow-hidden">
-                    <img src={img.url} alt={item.product.name} className="w-full h-full object-cover" />
+                <div key={`${item.product.id}_${item.selectedColor || idx}`} className="flex gap-4 border border-white/8 bg-[#111111] p-4">
+                  <Link to={`/product/${item.product.slug}`} className="w-20 h-24 sm:w-24 sm:h-28 bg-[#1A1A1A] flex-shrink-0 overflow-hidden border border-white/10">
+                    <img src={imgUrl} alt={item.product.name} className="w-full h-full object-cover" />
                   </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between gap-2">
@@ -55,20 +56,26 @@ export const Cart = () => {
                         {item.product.name}
                       </Link>
                       <button
-                        onClick={() => removeFromCart(item.product.id)}
+                        onClick={() => removeFromCart(item.product.id, item.selectedColor)}
                         className="text-white/25 hover:text-white transition-colors shrink-0"
                       >
                         <Trash2 size={13} />
                       </button>
                     </div>
-                    <p className="text-[11px] text-white/30 mt-1 line-clamp-1">{item.product.shortDescription}</p>
+                    {item.selectedColor ? (
+                      <div className="inline-block bg-crown-gold/15 text-crown-gold text-[10px] uppercase tracking-wider px-2 py-0.5 font-medium mt-1">
+                        Color: {item.selectedColor}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-white/30 mt-1 line-clamp-1">{item.product.shortDescription}</p>
+                    )}
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center border border-white/15">
-                        <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all">
+                        <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedColor)} className="w-7 h-7 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all">
                           <Minus size={11} />
                         </button>
                         <span className="w-8 text-center text-[12px] text-white">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all">
+                        <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedColor)} className="w-7 h-7 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all">
                           <Plus size={11} />
                         </button>
                       </div>
@@ -90,15 +97,10 @@ export const Cart = () => {
               </div>
               <div className="flex justify-between text-white/50">
                 <span>Shipping</span>
-                <span className={shipping === 0 ? 'text-crown-gold text-[11px] uppercase tracking-wider' : 'text-white'}>
-                  {shipping === 0 ? 'Free' : formatPrice(shipping)}
+                <span className="text-white">
+                  {formatPrice(shipping)}
                 </span>
               </div>
-              {shipping > 0 && (
-                <p className="text-[10px] text-crown-gold/60 uppercase tracking-wider">
-                  Add {formatPrice(2500 - total)} more for free shipping
-                </p>
-              )}
               <div className="flex justify-between font-semibold text-[15px] border-t border-white/8 pt-3 text-white">
                 <span>Total</span>
                 <span>{formatPrice(grandTotal)}</span>
@@ -112,7 +114,7 @@ export const Cart = () => {
                 Checkout — COD Available
               </Link>
               <a
-                href={whatsappLink(cartWhatsAppMessage(items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.price })), grandTotal))}
+                href={whatsappLink(cartWhatsAppMessage(items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.price, color: i.selectedColor })), grandTotal))}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block border border-[#25D366]/40 text-[#25D366] text-center py-3.5 text-[10px] tracking-[0.2em] uppercase hover:bg-[#25D366]/10 transition-colors"

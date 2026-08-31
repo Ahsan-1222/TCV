@@ -19,7 +19,7 @@ export const SearchPage = () => {
     <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-12">
       <h1 className="font-display text-[32px]">Search</h1>
       <div className="mt-6 max-w-xl flex gap-2">
-        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search perfumes, bags, jewellery..." className="flex-1 border bg-white px-5 py-3 text-sm outline-none focus:border-black" />
+        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search perfumes, bags, watches..." className="flex-1 border bg-white px-5 py-3 text-sm outline-none focus:border-black" />
         <span className="border bg-black text-white px-6 py-3 text-[11px] tracking-widest uppercase">{filtered.length} results</span>
       </div>
 

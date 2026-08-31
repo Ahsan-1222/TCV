@@ -13,13 +13,6 @@ export const Header = () => {
   const { itemCount, setIsOpen } = useCart();
   const { count: wishlistCount } = useWishlist();
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -41,7 +34,7 @@ export const Header = () => {
     { label: 'Shop', to: '/shop' },
     { label: 'Perfumes', to: '/categories/perfume' },
     { label: 'Bags', to: '/categories/bags' },
-    { label: 'Jewellery', to: '/categories/jewellery' },
+    { label: 'Watches', to: '/categories/watches' },
     { label: 'About', to: '/about' },
     { label: 'Contact', to: '/contact' },
   ];
@@ -49,14 +42,7 @@ export const Header = () => {
   return (
     <>
       <AnnouncementBar />
-
-      <header
-        className={`sticky top-0 z-40 transition-all duration-300 ${
-          scrolled
-            ? 'bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5 shadow-lg shadow-black/20'
-            : 'bg-[#0A0A0A] border-b border-white/5'
-        }`}
-      >
+      <header className="sticky top-0 z-40 bg-[#0A0A0A] border-b border-white/10 shadow-lg shadow-black/30 w-full">
         <div className="max-w-[1600px] mx-auto px-3 sm:px-6 md:px-8 lg:px-12">
           <div className="flex items-center justify-between h-[60px] sm:h-[68px] md:h-[76px]">
 
@@ -148,7 +134,7 @@ export const Header = () => {
                   <input
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search perfumes, bags, jewellery..."
+                    placeholder="Search perfumes, bags, watches..."
                     className="flex-1 bg-white/5 border border-white/10 px-4 py-3 text-[13px] text-white placeholder-white/40 outline-none focus:border-crown-gold/50 transition-colors"
                     autoFocus
                   />
@@ -193,32 +179,64 @@ export const Header = () => {
               </div>
 
               {/* Nav links */}
-              <nav className="flex-1 py-6 px-6 sm:px-8 flex flex-col justify-center gap-1 sm:gap-2">
+              <nav className="flex-1 py-3 px-5 sm:px-8 flex flex-col overflow-y-auto">
                 {navLinks.map((link, i) => (
                   <motion.div
                     key={link.to}
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 }}
+                    transition={{ delay: i * 0.03 }}
                   >
                     <Link
                       to={link.to}
                       onClick={() => setMobileOpen(false)}
-                      className="group flex items-center justify-between py-3 border-b border-white/5 hover:border-crown-gold/40 transition-colors"
+                      className="group flex items-center justify-between py-3.5 border-b border-white/8 hover:border-crown-gold/40 transition-colors"
                     >
-                      <span className="font-display text-[22px] sm:text-[26px] leading-[1.3] text-white font-medium group-hover:text-crown-gold transition-colors duration-300">
+                      <span className="font-display text-[16px] sm:text-[18px] tracking-[0.08em] uppercase text-white/90 font-medium group-hover:text-crown-gold transition-colors duration-200">
                         {link.label}
                       </span>
-                      <span className="text-[10px] tracking-[0.2em] text-crown-gold opacity-0 group-hover:opacity-100 transition-opacity">
-                        EXPLORE →
+                      <span className="text-[11px] text-white/30 group-hover:text-crown-gold transition-colors">
+                        →
                       </span>
                     </Link>
                   </motion.div>
                 ))}
+
+                {/* Social Media Links */}
+                <div className="mt-6 pt-2">
+                  <div className="grid grid-cols-2 border border-white/10 rounded-sm divide-x divide-white/10 bg-[#0E0E0E]">
+                    <a
+                      href="https://www.instagram.com/tcv1213?igsi=MXJiNm5hYmp0cjdpdQ%3D%3D&utm_source=qr"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-12 flex items-center justify-center gap-2 text-white/80 hover:text-crown-gold hover:bg-white/5 transition-colors"
+                      aria-label="Instagram"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                      </svg>
+                      <span className="text-[10px] tracking-widest uppercase font-medium">Instagram</span>
+                    </a>
+                    <a
+                      href="https://www.tiktok.com/@tcv12131?_r=1&_t=ZS-99IJ9IBPM1M"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-12 flex items-center justify-center gap-2 text-white/80 hover:text-crown-gold hover:bg-white/5 transition-colors"
+                      aria-label="TikTok"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.86.12V9.35a6.32 6.32 0 0 0-.86-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 10.83 4.47 6.3 6.3 0 0 0 1.87-4.47V8.62a8.23 8.23 0 0 0 4.75 1.5V6.69z"/>
+                      </svg>
+                      <span className="text-[10px] tracking-widest uppercase font-medium">TikTok</span>
+                    </a>
+                  </div>
+                </div>
               </nav>
 
               {/* Bottom info */}
-              <div className="px-6 sm:px-8 pb-8 pt-4 flex-shrink-0 space-y-1.5 border-t border-white/10 bg-[#070707]">
+              <div className="px-5 sm:px-8 py-5 flex-shrink-0 space-y-1 border-t border-white/10 bg-[#070707]">
                 <p className="text-[11px] tracking-[0.15em] uppercase text-white/90 font-mono">WhatsApp: +92 321 7244813</p>
                 <p className="text-[10px] tracking-[0.2em] uppercase text-white/60">COD · Nationwide Delivery</p>
               </div>

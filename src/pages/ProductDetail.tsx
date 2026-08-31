@@ -26,6 +26,7 @@ export const ProductDetail = () => {
   );
 
   const mainImg = product.images[activeImage] || product.images[0];
+  const selectedColorName = mainImg?.color || mainImg?.alt || (product.images.length > 1 ? `Option ${activeImage + 1}` : undefined);
   const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
   const inWishlist = isInWishlist(product.id);
   const discount = product.comparePrice
@@ -145,6 +146,45 @@ export const ProductDetail = () => {
               </div>
             </div>
 
+            {/* Color / Variant Selector (for Bags, Watches, and Multi-image products) */}
+            {product.images.length > 1 && (
+              <div className="mt-5 border-t border-white/8 pt-5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] tracking-[0.25em] uppercase text-white/50 font-medium">
+                    Select Color / Option:
+                  </span>
+                  {selectedColorName && (
+                    <span className="text-[11px] font-semibold text-crown-gold uppercase tracking-wider">
+                      {selectedColorName}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.images.map((img, i) => {
+                    const colorName = img.color || img.alt || `Option ${i + 1}`;
+                    const isSelected = activeImage === i;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setActiveImage(i)}
+                        className={`px-3 py-2 text-[11px] uppercase tracking-wider flex items-center gap-2 border transition-all duration-300 ${
+                          isSelected
+                            ? 'bg-crown-gold text-[#0A0A0A] border-crown-gold font-semibold shadow-md'
+                            : 'border-white/20 text-white/70 hover:border-crown-gold hover:text-white bg-white/5'
+                        }`}
+                      >
+                        <span className="w-4 h-4 rounded-full overflow-hidden border border-white/30 shrink-0">
+                          <img src={img.url} alt="" className="w-full h-full object-cover" />
+                        </span>
+                        <span>{colorName}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Qty + Add to Cart */}
             <div className="mt-6 flex flex-wrap sm:flex-nowrap gap-2">
               <div className="flex items-center border border-white/15 shrink-0">
@@ -157,7 +197,7 @@ export const ProductDetail = () => {
                 </button>
               </div>
               <button
-                onClick={() => addToCart(product, qty)}
+                onClick={() => addToCart(product, qty, selectedColorName, mainImg.url)}
                 className="flex-1 min-w-[160px] h-12 bg-crown-gold text-[#0A0A0A] text-[10px] sm:text-[11px] tracking-[0.2em] uppercase font-semibold hover:bg-crown-gold-dark transition-colors flex justify-center items-center"
               >
                 Add to Cart — {formatPrice(product.price * qty)}
@@ -177,7 +217,7 @@ export const ProductDetail = () => {
             {/* WhatsApp + COD */}
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
               <a
-                href={whatsappLink(productWhatsAppMessage(product.name, product.price, window.location.href))}
+                href={whatsappLink(productWhatsAppMessage(product.name, product.price, window.location.href, selectedColorName))}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border border-[#25D366] text-[#25D366] h-12 text-[10px] tracking-[0.2em] uppercase text-center flex items-center justify-center gap-2 hover:bg-[#25D366] hover:text-white transition-colors"
@@ -193,7 +233,7 @@ export const ProductDetail = () => {
             <div className="mt-6 grid grid-cols-3 gap-3 border-t border-white/8 pt-5 text-[10px]">
               {[
                 [Shield, 'Authentic', '100% Original'],
-                [Truck, 'Nationwide', 'Free over 2500'],
+                [Truck, 'Nationwide', 'Rs. 200 Delivery'],
                 [MessageCircle, 'WhatsApp', 'Instant reply'],
               ].map(([Icon, title, sub]) => (
                 <div key={title as string} className="flex gap-2">
