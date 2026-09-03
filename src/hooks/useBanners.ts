@@ -7,14 +7,10 @@ const BANNER_CACHE_KEY = 'tcv_hero_banners_v5';
 export const useBanners = () => {
   const [banners, setBanners] = useState<BannerSlide[]>(() => {
     try {
-      const saved = localStorage.getItem(BANNER_CACHE_KEY);
+      const saved = localStorage.getItem(BANNER_CACHE_KEY) || localStorage.getItem('tcv_hero_banners');
       if (saved) {
         const parsed = JSON.parse(saved) as BannerSlide[];
-        if (
-          Array.isArray(parsed) &&
-          parsed.length === 3 &&
-          parsed.every(s => s.image && s.image.startsWith('/assets/banners/'))
-        ) {
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(s => typeof s?.image === 'string')) {
           return parsed;
         }
       }

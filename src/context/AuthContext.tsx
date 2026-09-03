@@ -12,14 +12,25 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ADMIN_PASSWORD = 'Admin@@1122';
+const DEFAULT_ADMIN: User = { id: '1', email: 'admin@thecrownvault.com', role: 'admin', name: 'Admin' };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  // Always require password authentication whenever opening the admin page
   const [user, setUser] = useState<User | null>(null);
+
+  // Clear any existing stored admin session data to enforce strict password check
+  try {
+    localStorage.removeItem('tcv_admin_user');
+    localStorage.removeItem('tcv_admin_logged_in');
+    sessionStorage.removeItem('tcv_admin_user');
+    if (typeof document !== 'undefined') {
+      document.cookie = 'tcv_admin_session=; path=/; max-age=0; SameSite=Lax';
+    }
+  } catch {}
 
   const login = async (password: string) => {
     if (password === ADMIN_PASSWORD) {
-      const adminUser: User = { id: '1', email: 'admin@thecrownvault.com', role: 'admin', name: 'Admin' };
-      setUser(adminUser);
+      setUser(DEFAULT_ADMIN);
       return true;
     }
     return false;
@@ -27,7 +38,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('tcv_admin_user');
   };
 
   return (

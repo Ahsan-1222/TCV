@@ -8,7 +8,8 @@ import {
   subscribeCategoryBanners,
   saveCategoryBannersToDB,
   DEFAULT_CATEGORY_BANNERS,
-  type CategoryBanner
+  type CategoryBanner,
+  deleteImageFile
 } from '../../services/dbService';
 
 export interface BannerSlide {
@@ -26,10 +27,10 @@ export const BannerAdmin = () => {
   // Hero Banners State
   const [banners, setBanners] = useState<BannerSlide[]>(() => {
     try {
-      const saved = localStorage.getItem('tcv_hero_banners_v5');
+      const saved = localStorage.getItem('tcv_hero_banners_v5') || localStorage.getItem('tcv_hero_banners');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === 3 && parsed.every(s => s.image && s.image.startsWith('/assets/banners/'))) {
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((s: any) => typeof s?.image === 'string')) {
           return parsed;
         }
       }
@@ -141,9 +142,14 @@ export const BannerAdmin = () => {
 
   const removeBanner = (index: number) => {
     if (banners.length <= 1) return alert('At least one banner required.');
+    const removedBanner = banners[index];
+    if (removedBanner?.image) {
+      deleteImageFile(removedBanner.image);
+    }
     const newList = banners.filter((_, i) => i !== index);
     setBanners(newList);
     setUrlInputs(urlInputs.filter((_, i) => i !== index));
+    save(newList);
   };
 
   const moveBanner = (index: number, dir: 'up' | 'down') => {

@@ -7,6 +7,8 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { CartDrawer } from './components/layout/CartDrawer';
 import { WhatsAppFloat } from './components/ui/WhatsAppFloat';
+import { ScrollProgress } from './components/ui/ScrollProgress';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // Lazy pages for code splitting
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -40,57 +42,60 @@ const Loading = () => (
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <BrowserRouter>
-            <div className="min-h-screen flex flex-col bg-[#0A0A0A]">
-              <Routes>
-                {/* Admin Routes without Header/Footer */}
-                <Route path="/admin" element={
-                  <Suspense fallback={<Loading />}><AdminLayout /></Suspense>
-                }>
-                  <Route index element={<Suspense fallback={<Loading />}><AdminDashboard /></Suspense>} />
-                  <Route path="products" element={<Suspense fallback={<Loading />}><ProductsAdmin /></Suspense>} />
-                  <Route path="orders" element={<Suspense fallback={<Loading />}><OrdersAdmin /></Suspense>} />
-                  <Route path="banners" element={<Suspense fallback={<Loading />}><BannerAdmin /></Suspense>} />
-                  <Route path="customers" element={<Suspense fallback={<Loading />}><CustomersAdmin /></Suspense>} />
-                  <Route path="settings" element={<Suspense fallback={<Loading />}><SettingsAdmin /></Suspense>} />
-                </Route>
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <BrowserRouter>
+              <ScrollProgress />
+              <div className="min-h-screen flex flex-col bg-[#0A0A0A]">
+                <Routes>
+                  {/* Admin Routes without Header/Footer */}
+                  <Route path="/admin" element={
+                    <Suspense fallback={<Loading />}><AdminLayout /></Suspense>
+                  }>
+                    <Route index element={<Suspense fallback={<Loading />}><AdminDashboard /></Suspense>} />
+                    <Route path="products" element={<Suspense fallback={<Loading />}><ProductsAdmin /></Suspense>} />
+                    <Route path="orders" element={<Suspense fallback={<Loading />}><OrdersAdmin /></Suspense>} />
+                    <Route path="banners" element={<Suspense fallback={<Loading />}><BannerAdmin /></Suspense>} />
+                    <Route path="customers" element={<Suspense fallback={<Loading />}><CustomersAdmin /></Suspense>} />
+                    <Route path="settings" element={<Suspense fallback={<Loading />}><SettingsAdmin /></Suspense>} />
+                  </Route>
 
-                {/* Store Routes */}
-                <Route path="/*" element={
-                  <>
-                    <Header />
-                    <CartDrawer />
-                    <WhatsAppFloat />
-                    <main className="flex-1">
-                      <Suspense fallback={<Loading />}>
-                        <Routes>
-                          <Route path="/" element={<Home />} />
-                          <Route path="/shop" element={<Shop />} />
-                          <Route path="/categories/:slug" element={<CategoriesPage />} />
-                          <Route path="/product/:slug" element={<ProductDetail />} />
-                          <Route path="/wishlist" element={<Wishlist />} />
-                          <Route path="/search" element={<SearchPage />} />
-                          <Route path="/cart" element={<Cart />} />
-                          <Route path="/checkout" element={<Checkout />} />
-                          <Route path="/checkout/success" element={<CheckoutSuccess />} />
-                          <Route path="/about" element={<About />} />
-                          <Route path="/contact" element={<Contact />} />
-                          <Route path="*" element={<Navigate to="/" replace />} />
-                        </Routes>
-                      </Suspense>
-                    </main>
-                    <Footer />
-                  </>
-                } />
-              </Routes>
-            </div>
-          </BrowserRouter>
-        </WishlistProvider>
-      </CartProvider>
-    </AuthProvider>
+                  {/* Store Routes */}
+                  <Route path="/*" element={
+                    <>
+                      <Header />
+                      <CartDrawer />
+                      <WhatsAppFloat />
+                      <main className="flex-1">
+                        <Suspense fallback={<Loading />}>
+                          <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/shop" element={<Shop />} />
+                            <Route path="/categories/:slug" element={<CategoriesPage />} />
+                            <Route path="/product/:slug" element={<ProductDetail />} />
+                            <Route path="/wishlist" element={<Wishlist />} />
+                            <Route path="/search" element={<SearchPage />} />
+                            <Route path="/cart" element={<Cart />} />
+                            <Route path="/checkout" element={<Checkout />} />
+                            <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                            <Route path="/about" element={<About />} />
+                            <Route path="/contact" element={<Contact />} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                          </Routes>
+                        </Suspense>
+                      </main>
+                      <Footer />
+                    </>
+                  } />
+                </Routes>
+              </div>
+            </BrowserRouter>
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

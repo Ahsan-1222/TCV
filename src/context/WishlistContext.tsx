@@ -14,25 +14,40 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<WishlistItem[]>(() => {
-    const saved = localStorage.getItem('tcv_wishlist');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('tcv_wishlist');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (err) {
+      console.warn('Failed parsing wishlist state from localStorage:', err);
+    }
+    return [];
   });
 
   useEffect(() => {
-    localStorage.setItem('tcv_wishlist', JSON.stringify(items));
+    try {
+      localStorage.setItem('tcv_wishlist', JSON.stringify(items));
+    } catch (err) {
+      console.warn('Failed saving wishlist state to localStorage:', err);
+    }
   }, [items]);
 
   const addToWishlist = (product: Product) => {
-    if (!items.find(i => i.product.id === product.id)) {
-      setItems(prev => [...prev, { product, addedAt: new Date().toISOString() }]);
-    }
+    setItems(prev => {
+      if (!prev.some(i => i.product.id === product.id)) {
+        return [...prev, { product, addedAt: new Date().toISOString() }];
+      }
+      return prev;
+    });
   };
 
   const removeFromWishlist = (productId: string) => {
     setItems(prev => prev.filter(i => i.product.id !== productId));
   };
 
-  const isInWishlist = (productId: string) => !!items.find(i => i.product.id === productId);
+  const isInWishlist = (productId: string) => items.some(i => i.product.id === productId);
 
   return (
     <WishlistContext.Provider value={{ items, addToWishlist, removeFromWishlist, isInWishlist, count: items.length }}>

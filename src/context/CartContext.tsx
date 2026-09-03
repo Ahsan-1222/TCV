@@ -18,13 +18,26 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem('tcv_cart');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('tcv_cart');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (err) {
+      console.warn('Failed parsing cart state from localStorage:', err);
+    }
+    return [];
   });
+
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('tcv_cart', JSON.stringify(items));
+    try {
+      localStorage.setItem('tcv_cart', JSON.stringify(items));
+    } catch (err) {
+      console.warn('Failed saving cart state to localStorage:', err);
+    }
   }, [items]);
 
   const addToCart = (product: Product, quantity = 1, selectedColor?: string, selectedImage?: string) => {
@@ -32,17 +45,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const color = selectedColor || (product.images[0]?.color ? product.images[0].color : undefined);
     const imgUrl = selectedImage || defaultImage;
 
+    const maxStock = typeof product.stock === 'number' && product.stock > 0 ? product.stock : 99;
+
     setItems(prev => {
       const existingIdx = prev.findIndex(i => i.product.id === product.id && i.selectedColor === color);
       if (existingIdx >= 0) {
         const updated = [...prev];
+        const currentQty = updated[existingIdx].quantity;
+        const newQty = Math.min(maxStock, currentQty + quantity);
         updated[existingIdx] = {
           ...updated[existingIdx],
-          quantity: updated[existingIdx].quantity + quantity
+          quantity: newQty
         };
         return updated;
       }
-      return [...prev, { product, quantity, selectedColor: color, selectedImage: imgUrl }];
+      return [...prev, { product, quantity: Math.min(maxStock, quantity), selectedColor: color, selectedImage: imgUrl }];
     });
     setIsOpen(true);
   };
@@ -55,13 +72,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (quantity <= 0) {
       removeFromCart(productId, selectedColor);
     } else {
-      setItems(prev => prev.map(i => (i.product.id === productId && i.selectedColor === selectedColor) ? { ...i, quantity } : i));
+      setItems(prev => prev.map(i => {
+        if (i.product.id === productId && i.selectedColor === selectedColor) {
+          const maxStock = typeof i.product.stock === 'number' && i.product.stock > 0 ? i.product.stock : 99;
+          return { ...i, quantity: Math.min(maxStock, quantity) };
+        }
+        return i;
+      }));
     }
   };
 
   const clearCart = () => setItems([]);
-  const total = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-  const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  const total = items.reduce((sum, i) => sum + (i.product.price || 0) * (i.quantity || 1), 0);
+  const itemCount = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
 
   return (
     <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, total, itemCount, isOpen, setIsOpen }}>

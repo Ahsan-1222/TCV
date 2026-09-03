@@ -17,6 +17,18 @@ export const Checkout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    const cleanPhone = form.phone.replace(/[^0-9+]/g, '');
+    if (cleanPhone.length < 10) {
+      alert('Please enter a valid WhatsApp phone number (minimum 10 digits).');
+      return;
+    }
+
+    if (payment === 'easypaisa' && !form.screenshot) {
+      alert('Please upload your Easypaisa payment receipt screenshot to verify your payment before placing the order.');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {

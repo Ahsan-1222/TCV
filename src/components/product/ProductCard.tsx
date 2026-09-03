@@ -17,10 +17,10 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ delay: index * 0.05, duration: 0.7 }}
+      initial={{ opacity: 0, y: 30, scale: 0.96 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ delay: index * 0.06, duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
       className="group relative flex flex-col"
     >
       {/* Image */}
@@ -29,6 +29,13 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
           <img
             src={mainImage.url}
             alt={mainImage.alt}
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.failed) {
+                target.dataset.failed = 'true';
+                target.src = 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format';
+              }
+            }}
             className="w-full h-full object-cover object-center max-w-full transition-transform duration-[2s] ease-out group-hover:scale-105"
             loading="lazy"
           />

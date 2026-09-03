@@ -16,15 +16,36 @@ export const SearchPage = () => {
   }, [query]);
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-12">
-      <h1 className="font-display text-[32px]">Search</h1>
-      <div className="mt-6 max-w-xl flex gap-2">
-        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search perfumes, bags, watches..." className="flex-1 border bg-white px-5 py-3 text-sm outline-none focus:border-black" />
-        <span className="border bg-black text-white px-6 py-3 text-[11px] tracking-widest uppercase">{filtered.length} results</span>
-      </div>
+    <div className="bg-[#0A0A0A] min-h-screen text-white">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-12">
+        <h1 className="font-display text-[32px] sm:text-[40px] uppercase text-white">Search</h1>
+        <div className="mt-6 max-w-xl flex gap-2">
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search perfumes, bags, watches..."
+            className="flex-1 bg-[#111111] border border-white/15 px-5 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-crown-gold/60 transition-colors"
+          />
+          <span className="bg-crown-gold text-[#0A0A0A] px-6 py-3 text-[11px] tracking-widest uppercase font-semibold flex items-center shrink-0">
+            {filtered.length} results
+          </span>
+        </div>
 
-      <div className="mt-10">
-        {query ? filtered.length ? <ProductGrid products={filtered} title={`Results for "${query}"`} /> : <div className="py-16 text-center border border-dashed">No products found for "{query}"</div> : <div className="py-16 text-center opacity-60 text-sm">Type to search our luxury collections</div>}
+        <div className="mt-10">
+          {query ? (
+            filtered.length ? (
+              <ProductGrid products={filtered} title={`Results for "${query}"`} />
+            ) : (
+              <div className="py-16 text-center border border-dashed border-white/10 text-white/40 text-sm">
+                No products found matching "{query}"
+              </div>
+            )
+          ) : (
+            <div className="py-16 text-center text-white/40 text-sm tracking-wide">
+              Type to search our luxury collections
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

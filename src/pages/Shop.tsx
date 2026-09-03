@@ -20,11 +20,18 @@ export const Shop = () => {
     let list = [...products];
     if (selectedCategory !== 'all') list = list.filter(p => p.category === selectedCategory);
     if (sort === 'price-low') list.sort((a, b) => a.price - b.price);
-    if (sort === 'price-high') list.sort((a, b) => b.price - a.price);
-    if (sort === 'newest') list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    if (sort === 'featured') list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    else if (sort === 'price-high') list.sort((a, b) => b.price - a.price);
+    else if (sort === 'newest') list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    else {
+      // Default / Featured: Saved Product Sequence Order
+      list.sort((a, b) => {
+        const orderA = typeof a.displayOrder === 'number' ? a.displayOrder : 9999;
+        const orderB = typeof b.displayOrder === 'number' ? b.displayOrder : 9999;
+        return orderA - orderB;
+      });
+    }
     return list;
-  }, [selectedCategory, sort]);
+  }, [products, selectedCategory, sort]);
 
   return (
     <div className="bg-[#0A0A0A] min-h-screen">

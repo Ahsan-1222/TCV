@@ -57,6 +57,7 @@ export interface Product {
   size?: string;
   createdAt: string;
   updatedAt: string;
+  displayOrder?: number;
 }
 
 export interface CartItem {

@@ -2,7 +2,6 @@ import { Hero } from '../components/home/Hero';
 import { motion } from 'framer-motion';
 import { FeaturedCategories } from '../components/home/FeaturedCategories';
 import { BrandStory } from '../components/home/BrandStory';
-import { Testimonials } from '../components/home/Testimonials';
 import { ProductGrid } from '../components/product/ProductGrid';
 import { useProducts } from '../hooks/useProducts';
 import { useCart } from '../context/CartContext';
@@ -97,7 +96,6 @@ export const Home = () => {
       </section>
 
       <BrandStory />
-      <Testimonials />
     </div>
   );
 };

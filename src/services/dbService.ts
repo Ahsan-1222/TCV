@@ -1,6 +1,6 @@
 import { db, storage, collections } from '../lib/firebase';
 import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { products as initialProducts } from '../data/products';
 import type { Product } from '../types';
 import type { BannerSlide } from '../pages/admin/BannerAdmin';
@@ -138,66 +138,126 @@ const seedBannersIfEmpty = async () => {
   }
 };
 
+export const sortProductsBySequence = (list: Product[]): Product[] => {
+  return [...list].sort((a, b) => {
+    const orderA = typeof a.displayOrder === 'number' ? a.displayOrder : 9999;
+    const orderB = typeof b.displayOrder === 'number' ? b.displayOrder : 9999;
+    if (orderA !== orderB) return orderA - orderB;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+};
+
+const productSubscribers = new Set<(prods: Product[]) => void>();
+let productsUnsubscribe: (() => void) | null = null;
+let lastProductsState: Product[] | null = null;
+
 /**
- * Real-time listener for Products collection in Firestore DB
+ * Real-time listener for Products collection in Firestore DB (Shared Singleton)
  */
 export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() => void) => {
-  let isSeeding = false;
-  
-  const unsubscribe = onSnapshot(
-    collection(db, collections.products),
-    (snapshot) => {
-      const deletedIds = getDeletedProductIds();
+  productSubscribers.add(onUpdate);
+  if (lastProductsState) {
+    onUpdate(lastProductsState);
+  }
 
-      if (snapshot.empty && !isSeeding) {
-        isSeeding = true;
-        seedProductsIfEmpty();
+  if (!productsUnsubscribe) {
+    let isSeeding = false;
+    productsUnsubscribe = onSnapshot(
+      collection(db, collections.products),
+      (snapshot) => {
+        const deletedIds = getDeletedProductIds();
+
+        if (snapshot.empty && !isSeeding) {
+          isSeeding = true;
+          seedProductsIfEmpty();
+          let fallback = initialProducts.filter(p => !deletedIds.includes(p.id));
+          try {
+            const cached = localStorage.getItem('tcv_products');
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                fallback = parsed.filter((p: Product) => !deletedIds.includes(p.id));
+              }
+            }
+          } catch {}
+          fallback = sortProductsBySequence(fallback);
+          lastProductsState = fallback;
+          productSubscribers.forEach(cb => cb(fallback));
+          return;
+        }
+
+        const prods: Product[] = [];
+        snapshot.forEach((docSnap) => {
+          const item = { id: docSnap.id, ...docSnap.data() } as Product;
+          if (!deletedIds.includes(item.id)) {
+            prods.push(item);
+          }
+        });
+
+        const sortedProds = sortProductsBySequence(prods);
+
+        try {
+          localStorage.setItem('tcv_products', JSON.stringify(sortedProds));
+          localStorage.setItem('tcv_admin_products', JSON.stringify(sortedProds));
+        } catch {}
+
+        lastProductsState = sortedProds;
+        productSubscribers.forEach(cb => cb(sortedProds));
+      },
+      (error) => {
+        console.warn('Firestore products snapshot error, using fallback cache:', error);
+        const deletedIds = getDeletedProductIds();
+        let fallback = initialProducts.filter(p => !deletedIds.includes(p.id));
         try {
           const cached = localStorage.getItem('tcv_products');
           if (cached) {
             const parsed = JSON.parse(cached);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              onUpdate(parsed.filter(p => !deletedIds.includes(p.id)));
-              return;
+              fallback = parsed.filter((p: Product) => !deletedIds.includes(p.id));
             }
           }
         } catch {}
-        onUpdate(initialProducts.filter(p => !deletedIds.includes(p.id)));
-        return;
+        fallback = sortProductsBySequence(fallback);
+        lastProductsState = fallback;
+        productSubscribers.forEach(cb => cb(fallback));
       }
-      
-      const prods: Product[] = [];
-      snapshot.forEach((docSnap) => {
-        const item = { id: docSnap.id, ...docSnap.data() } as Product;
-        if (!deletedIds.includes(item.id)) {
-          prods.push(item);
-        }
-      });
-      
-      try {
-        localStorage.setItem('tcv_products', JSON.stringify(prods));
-        localStorage.setItem('tcv_admin_products', JSON.stringify(prods));
-      } catch {}
-      onUpdate(prods);
-    },
-    (error) => {
-      console.warn('Firestore products snapshot error, using fallback cache:', error);
-      const deletedIds = getDeletedProductIds();
-      try {
-        const cached = localStorage.getItem('tcv_products');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            onUpdate(parsed.filter(p => !deletedIds.includes(p.id)));
-            return;
-          }
-        }
-      } catch {}
-      onUpdate(initialProducts.filter(p => !deletedIds.includes(p.id)));
-    }
-  );
+    );
+  }
 
-  return unsubscribe;
+  return () => {
+    productSubscribers.delete(onUpdate);
+    if (productSubscribers.size === 0 && productsUnsubscribe) {
+      productsUnsubscribe();
+      productsUnsubscribe = null;
+      lastProductsState = null;
+    }
+  };
+};
+
+/**
+ * Save product sequence/order in bulk to Firestore DB and LocalStorage
+ */
+export const saveProductSequenceToDB = async (reorderedProducts: Product[]): Promise<void> => {
+  const updatedList = reorderedProducts.map((prod, index) => ({
+    ...prod,
+    displayOrder: index + 1,
+    updatedAt: new Date().toISOString(),
+  }));
+
+  try {
+    localStorage.setItem('tcv_products', JSON.stringify(updatedList));
+    localStorage.setItem('tcv_admin_products', JSON.stringify(updatedList));
+  } catch (err) {
+    console.warn('Failed to update local storage product sequence:', err);
+  }
+
+  // Update in Firestore
+  for (const prod of updatedList) {
+    await setDoc(doc(db, collections.products, prod.id), JSON.parse(JSON.stringify(prod)), { merge: true });
+  }
+
+  lastProductsState = updatedList;
+  productSubscribers.forEach(cb => cb(updatedList));
 };
 
 /**
@@ -205,6 +265,11 @@ export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() 
  */
 export const saveProductToDB = async (product: Product): Promise<void> => {
   const cleanProduct = JSON.parse(JSON.stringify(product));
+
+  if (typeof cleanProduct.displayOrder !== 'number' || cleanProduct.displayOrder <= 0) {
+    const currentList = lastProductsState || [];
+    cleanProduct.displayOrder = currentList.length + 1;
+  }
   
   // Unmark deleted if admin re-saves
   try {
@@ -221,6 +286,7 @@ export const saveProductToDB = async (product: Product): Promise<void> => {
     const idx = list.findIndex(p => p.id === product.id);
     if (idx >= 0) list[idx] = cleanProduct;
     else list.push(cleanProduct);
+    list = sortProductsBySequence(list);
     localStorage.setItem('tcv_products', JSON.stringify(list));
     localStorage.setItem('tcv_admin_products', JSON.stringify(list));
   } catch (err) {
@@ -231,16 +297,51 @@ export const saveProductToDB = async (product: Product): Promise<void> => {
 };
 
 /**
+ * Permanently delete image from Firebase Storage if stored in Firebase
+ */
+export const deleteImageFile = async (imageUrl?: string): Promise<void> => {
+  if (!imageUrl || typeof imageUrl !== 'string') return;
+  if (imageUrl.includes('firebasestorage.googleapis.com') || imageUrl.includes('storage.googleapis.com') || imageUrl.startsWith('gs://')) {
+    try {
+      const storageRef = ref(storage, imageUrl);
+      await deleteObject(storageRef);
+      console.log('Permanently deleted image from Firebase Storage:', imageUrl);
+    } catch (err) {
+      console.warn('Firebase Storage image deletion note:', err);
+    }
+  }
+};
+
+/**
  * Delete product dynamically from Firestore DB
  */
 export const deleteProductFromDB = async (productId: string): Promise<void> => {
   await markProductAsDeleted(productId);
+
+  // Permanently delete associated product images from Firebase Storage
+  try {
+    const cached = localStorage.getItem('tcv_products');
+    if (cached) {
+      const list: Product[] = JSON.parse(cached);
+      const target = list.find(p => p.id === productId);
+      if (target && Array.isArray(target.images)) {
+        for (const img of target.images) {
+          if (img?.url) {
+            await deleteImageFile(img.url);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Error deleting product images from Firebase storage:', err);
+  }
 
   try {
     const cached = localStorage.getItem('tcv_products');
     if (cached) {
       let list: Product[] = JSON.parse(cached);
       list = list.filter(p => p.id !== productId);
+      list = sortProductsBySequence(list);
       localStorage.setItem('tcv_products', JSON.stringify(list));
       localStorage.setItem('tcv_admin_products', JSON.stringify(list));
     }
@@ -269,31 +370,31 @@ export const subscribeBanners = (onUpdate: (banners: BannerSlide[]) => void): ((
 
       const data = snapshot.data();
       if (data && Array.isArray(data.slides) && data.slides.length > 0) {
-        const isFresh = data.slides.every((s: any) =>
-          typeof s.image === 'string' &&
-          s.image.startsWith('/assets/banners/') &&
-          !s.heading?.toLowerCase().includes('jewelry') &&
-          !s.subtitle?.toLowerCase().includes('jewelry')
-        );
-
-        if (isFresh) {
+        const validSlides = data.slides.filter((s: any) => s && typeof s.image === 'string' && s.image.trim() !== '');
+        if (validSlides.length > 0) {
           try {
-            localStorage.setItem('tcv_hero_banners_v5', JSON.stringify(data.slides));
+            localStorage.setItem('tcv_hero_banners_v5', JSON.stringify(validSlides));
+            localStorage.setItem('tcv_hero_banners', JSON.stringify(validSlides));
           } catch {}
-          onUpdate(data.slides);
-          return;
-        } else {
-          saveBannersToDB(DEFAULT_BANNERS);
-          onUpdate(DEFAULT_BANNERS);
+          onUpdate(validSlides);
           return;
         }
       }
 
-      saveBannersToDB(DEFAULT_BANNERS);
       onUpdate(DEFAULT_BANNERS);
     },
     (error) => {
-      console.warn('Firestore banners snapshot error, using default banners:', error);
+      console.warn('Firestore banners snapshot error, using default or cached banners:', error);
+      try {
+        const cached = localStorage.getItem('tcv_hero_banners_v5') || localStorage.getItem('tcv_hero_banners');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            onUpdate(parsed);
+            return;
+          }
+        }
+      } catch {}
       onUpdate(DEFAULT_BANNERS);
     }
   );
@@ -307,6 +408,7 @@ export const subscribeBanners = (onUpdate: (banners: BannerSlide[]) => void): ((
 export const saveBannersToDB = async (banners: BannerSlide[]): Promise<void> => {
   const cleanBanners = JSON.parse(JSON.stringify(banners));
   try {
+    localStorage.setItem('tcv_hero_banners_v5', JSON.stringify(cleanBanners));
     localStorage.setItem('tcv_hero_banners', JSON.stringify(cleanBanners));
   } catch (err) {
     console.warn('Failed to set localStorage tcv_hero_banners:', err);

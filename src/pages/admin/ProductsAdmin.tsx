@@ -2,38 +2,76 @@ import { useState, useEffect, useRef } from 'react';
 import { products as initialProducts } from '../../data/products';
 import type { Product } from '../../types';
 import { formatPrice } from '../../lib/utils';
-import { Plus, Edit3, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
-import { subscribeProducts, saveProductToDB, deleteProductFromDB, uploadImageFile } from '../../services/dbService';
+import { Plus, Edit3, Trash2, Upload, Image as ImageIcon, ArrowUp, ArrowDown, Save, Check, ListOrdered } from 'lucide-react';
+import { subscribeProducts, saveProductToDB, deleteProductFromDB, uploadImageFile, saveProductSequenceToDB, sortProductsBySequence, deleteImageFile } from '../../services/dbService';
 
 export const ProductsAdmin = () => {
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const savedAdmin = localStorage.getItem('tcv_admin_products');
-      if (savedAdmin) return JSON.parse(savedAdmin);
+      if (savedAdmin) return sortProductsBySequence(JSON.parse(savedAdmin));
       const saved = localStorage.getItem('tcv_products');
-      if (saved) return JSON.parse(saved);
+      if (saved) return sortProductsBySequence(JSON.parse(saved));
     } catch {}
-    return initialProducts;
+    return sortProductsBySequence(initialProducts);
   });
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingSequence, setIsSavingSequence] = useState(false);
+  const [sequenceSaved, setSequenceSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [form, setForm] = useState<Partial<Product>>({
     name: '', price: 0, comparePrice: 0, stock: 0, category: 'perfume',
     shortDescription: '', description: '', featured: false,
-    sku: '', tags: [], images: []
+    sku: '', tags: [], images: [], displayOrder: 1
   });
 
   useEffect(() => {
     const unsubscribe = subscribeProducts((prods) => {
-      if (prods && prods.length > 0) setProducts(prods);
+      if (prods && prods.length > 0) setProducts(sortProductsBySequence(prods));
     });
     return () => unsubscribe();
   }, []);
+
+  const handleSaveSequence = async (listToSave: Product[] = products) => {
+    setIsSavingSequence(true);
+    try {
+      await saveProductSequenceToDB(listToSave);
+      setSequenceSaved(true);
+      setTimeout(() => setSequenceSaved(false), 3000);
+    } catch (err) {
+      console.error('Error saving sequence:', err);
+      alert('Failed to save product sequence.');
+    } finally {
+      setIsSavingSequence(false);
+    }
+  };
+
+  const moveUp = (index: number) => {
+    if (index <= 0) return;
+    const updated = [...products];
+    const temp = updated[index];
+    updated[index] = updated[index - 1];
+    updated[index - 1] = temp;
+    const reordered = updated.map((p, i) => ({ ...p, displayOrder: i + 1 }));
+    setProducts(reordered);
+    handleSaveSequence(reordered);
+  };
+
+  const moveDown = (index: number) => {
+    if (index >= products.length - 1) return;
+    const updated = [...products];
+    const temp = updated[index];
+    updated[index] = updated[index + 1];
+    updated[index + 1] = temp;
+    const reordered = updated.map((p, i) => ({ ...p, displayOrder: i + 1 }));
+    setProducts(reordered);
+    handleSaveSequence(reordered);
+  };
 
   const addImage = () => {
     if (!newImageUrl.trim()) return;
@@ -60,6 +98,10 @@ export const ProductsAdmin = () => {
   };
 
   const removeImage = (index: number) => {
+    const targetImage = form.images?.[index];
+    if (targetImage?.url) {
+      deleteImageFile(targetImage.url);
+    }
     setForm(prev => {
       const newImgs = (prev.images || []).filter((_, i) => i !== index);
       if (newImgs.length > 0 && !newImgs.some(i => i.isMain)) {
@@ -92,6 +134,9 @@ export const ProductsAdmin = () => {
         : [{ url: `https://picsum.photos/seed/${Date.now()}/600/800`, alt: form.name!, isMain: true }];
 
       const comparePrice = Number(form.comparePrice) || 0;
+      const targetDisplayOrder = form.displayOrder && Number(form.displayOrder) > 0
+        ? Number(form.displayOrder)
+        : (editing?.displayOrder || products.length + 1);
 
       const newProduct: Product = {
         id: editing?.id || Math.random().toString(36).slice(2, 9),
@@ -112,6 +157,7 @@ export const ProductsAdmin = () => {
         reviews: editing?.reviews || [],
         createdAt: editing?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        displayOrder: targetDisplayOrder,
       };
 
       await saveProductToDB(newProduct);
@@ -138,26 +184,48 @@ export const ProductsAdmin = () => {
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ name: '', price: 0, comparePrice: 0, stock: 10, category: 'perfume', shortDescription: '', description: '', featured: false, sku: '', tags: [], images: [] });
+    setForm({
+      name: '', price: 0, comparePrice: 0, stock: 10, category: 'perfume',
+      shortDescription: '', description: '', featured: false, sku: '', tags: [], images: [],
+      displayOrder: products.length + 1
+    });
     setShowForm(true);
   };
 
-  const openEdit = (p: Product) => {
+  const openEdit = (p: Product, index: number) => {
     setEditing(p);
-    setForm({ ...p, comparePrice: p.comparePrice || 0 });
+    setForm({
+      ...p,
+      comparePrice: p.comparePrice || 0,
+      displayOrder: p.displayOrder || (index + 1)
+    });
     setShowForm(true);
   };
 
   return (
     <div className="text-[#1A1A1A]">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="font-display text-[24px] md:text-[28px] text-[#1A1A1A]">Manage Products — {products.length}</h1>
-        <button
-          onClick={openAdd}
-          className="bg-black text-white px-5 py-2.5 text-[11px] tracking-widest uppercase flex items-center gap-2 hover:bg-gray-800 transition-colors"
-        >
-          <Plus size={14} />Add Product
-        </button>
+        <div>
+          <h1 className="font-display text-[24px] md:text-[28px] text-[#1A1A1A]">Manage Products — {products.length}</h1>
+          <p className="text-[11px] text-gray-500 uppercase tracking-widest mt-0.5">Use sequence controls below to change product display order</p>
+        </div>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            onClick={() => handleSaveSequence()}
+            disabled={isSavingSequence}
+            className="border border-black text-black px-4 py-2.5 text-[11px] tracking-widest uppercase flex items-center gap-2 hover:bg-black hover:text-white transition-colors disabled:opacity-50"
+            title="Save Product Display Sequence"
+          >
+            {sequenceSaved ? <Check size={14} className="text-green-600" /> : <Save size={14} />}
+            {isSavingSequence ? 'Saving Sequence...' : sequenceSaved ? 'Sequence Saved!' : 'Save Sequence'}
+          </button>
+          <button
+            onClick={openAdd}
+            className="bg-black text-white px-5 py-2.5 text-[11px] tracking-widest uppercase flex items-center gap-2 hover:bg-gray-800 transition-colors"
+          >
+            <Plus size={14} />Add Product
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -178,7 +246,7 @@ export const ProductsAdmin = () => {
             <input type="number" placeholder="e.g. 5450" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
           </div>
           <div>
-            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium font-medium">Cut / Compare Price (PKR)</label>
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Cut / Compare Price (PKR)</label>
             <input type="number" placeholder="Original price shown crossed out (e.g. 7500)" value={form.comparePrice || ''} onChange={e => setForm({ ...form, comparePrice: Number(e.target.value) })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
             <p className="text-[10px] text-gray-500 mt-1">Leave 0 to not show a cut price</p>
           </div>
@@ -196,12 +264,28 @@ export const ProductsAdmin = () => {
             </select>
           </div>
 
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-semibold flex items-center gap-1.5 text-black">
+              <ListOrdered size={14} className="text-[#C9A86A]" /> Product Sequence / Display Order
+            </label>
+            <input
+              type="number"
+              min="1"
+              placeholder="e.g. 1 (Appears 1st on website)"
+              value={form.displayOrder || ''}
+              onChange={e => setForm({ ...form, displayOrder: Number(e.target.value) })}
+              className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black"
+            />
+            <p className="text-[10px] text-gray-500 mt-1">Lower numbers appear first on the public website (1, 2, 3...)</p>
+          </div>
+
           <div className="flex items-center pt-6">
             <label className="flex items-center gap-2 text-[12px] text-[#1A1A1A] cursor-pointer font-medium">
               <input type="checkbox" checked={!!form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} />
               Featured Product (shows on homepage)
             </label>
           </div>
+
           <div className="md:col-span-2">
             <label className="block text-[11px] uppercase tracking-widest text-gray-700 mb-2 font-medium">Short Description</label>
             <input placeholder="Short tagline (shown on product cards)" value={form.shortDescription} onChange={e => setForm({ ...form, shortDescription: e.target.value })} className="border border-gray-300 bg-white px-4 py-2.5 text-[13px] text-[#1A1A1A] w-full focus:outline-none focus:border-black" />
@@ -270,9 +354,10 @@ export const ProductsAdmin = () => {
       )}
 
       <div className="bg-white border border-gray-200 mt-6 overflow-x-auto text-[#1A1A1A]">
-        <table className="w-full text-[12px] min-w-[600px] text-[#1A1A1A]">
+        <table className="w-full text-[12px] min-w-[700px] text-[#1A1A1A]">
           <thead className="bg-[#F8F6F3] text-[11px] uppercase tracking-widest text-gray-700 border-b border-gray-200">
             <tr>
+              <th className="text-center p-3 w-28">Order / Sequence</th>
               <th className="text-left p-3">Product</th>
               <th className="text-left p-3">Category</th>
               <th className="text-left p-3">Price</th>
@@ -283,8 +368,33 @@ export const ProductsAdmin = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 text-[#1A1A1A]">
-            {products.map(p => (
+            {products.map((p, index) => (
               <tr key={p.id} className="hover:bg-gray-50 transition-colors text-[#1A1A1A]">
+                <td className="p-3 text-center">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className="w-7 h-7 rounded bg-gray-100 border border-gray-200 text-[11px] font-bold text-gray-800 flex items-center justify-center shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => moveUp(index)}
+                        disabled={index === 0}
+                        className="w-5 h-4 bg-gray-100 hover:bg-black hover:text-white border border-gray-200 flex items-center justify-center transition-colors disabled:opacity-30 disabled:hover:bg-gray-100 disabled:hover:text-black"
+                        title="Move Up"
+                      >
+                        <ArrowUp size={10} />
+                      </button>
+                      <button
+                        onClick={() => moveDown(index)}
+                        disabled={index === products.length - 1}
+                        className="w-5 h-4 bg-gray-100 hover:bg-black hover:text-white border border-gray-200 flex items-center justify-center transition-colors disabled:opacity-30 disabled:hover:bg-gray-100 disabled:hover:text-black"
+                        title="Move Down"
+                      >
+                        <ArrowDown size={10} />
+                      </button>
+                    </div>
+                  </div>
+                </td>
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {p.images && p.images.length > 0 ? (
@@ -306,7 +416,7 @@ export const ProductsAdmin = () => {
                 <td className="p-3 hidden md:table-cell text-[#1A1A1A]">{p.featured ? '✓' : '—'}</td>
                 <td className="p-3 text-right">
                   <div className="flex gap-2 justify-end">
-                    <button onClick={() => openEdit(p)} className="w-7 h-7 border border-gray-300 text-[#1A1A1A] flex items-center justify-center hover:bg-black hover:text-white transition-colors" title="Edit">
+                    <button onClick={() => openEdit(p, index)} className="w-7 h-7 border border-gray-300 text-[#1A1A1A] flex items-center justify-center hover:bg-black hover:text-white transition-colors" title="Edit">
                       <Edit3 size={12} />
                     </button>
                     <button onClick={() => handleDelete(p.id)} className="w-7 h-7 border border-gray-300 text-[#1A1A1A] flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" title="Delete">

@@ -67,6 +67,7 @@ export const products: Product[] = [
     size: '50ML | 1.7 FL. OZ.',
     createdAt: '2026-01-15',
     updatedAt: '2026-07-01',
+    displayOrder: 1,
     seoTitle: 'ROOH BLOOM - Floral & Warm Spice EDP | The Crown Vault',
   },
   {
@@ -97,6 +98,7 @@ export const products: Product[] = [
     size: '50ML | 1.7 FL. OZ.',
     createdAt: '2026-02-01',
     updatedAt: '2026-07-05',
+    displayOrder: 2,
     seoTitle: 'ROOH VELVET SPICE - Spicy & Woody EDP | The Crown Vault',
   },
   {
@@ -127,6 +129,7 @@ export const products: Product[] = [
     size: '50ML | 1.7 FL. OZ.',
     createdAt: '2026-03-10',
     updatedAt: '2026-07-10',
+    displayOrder: 3,
   },
   {
     id: 'rooh-gold',
@@ -155,6 +158,7 @@ export const products: Product[] = [
     size: '50ML',
     createdAt: '2026-04-01',
     updatedAt: '2026-07-12',
+    displayOrder: 4,
   },
   {
     id: 'rooh-velvet',
@@ -183,6 +187,7 @@ export const products: Product[] = [
     size: '50ML',
     createdAt: '2026-04-15',
     updatedAt: '2026-07-12',
+    displayOrder: 5,
   },
   // Demo products for other categories
   {
@@ -209,6 +214,7 @@ export const products: Product[] = [
     size: 'Medium',
     createdAt: '2026-05-01',
     updatedAt: '2026-06-01',
+    displayOrder: 6,
   },
   {
     id: 'bag-clutch-evening',
@@ -232,6 +238,7 @@ export const products: Product[] = [
     size: 'One Size',
     createdAt: '2026-05-10',
     updatedAt: '2026-06-10',
+    displayOrder: 7,
   },
   {
     id: 'watch-chronograph-classic',
@@ -257,6 +264,7 @@ export const products: Product[] = [
     size: '42mm Case',
     createdAt: '2026-05-15',
     updatedAt: '2026-07-01',
+    displayOrder: 8,
   },
   {
     id: 'watch-minimalist-gold',
@@ -280,6 +288,7 @@ export const products: Product[] = [
     size: '38mm Case',
     createdAt: '2026-06-01',
     updatedAt: '2026-07-01',
+    displayOrder: 9,
   },
   {
     id: 'rooh-signature-trio-bundle',
@@ -304,6 +313,7 @@ export const products: Product[] = [
     size: '3 x 50ML',
     createdAt: '2026-01-01',
     updatedAt: '2026-07-01',
+    displayOrder: 10,
   },
 ];
 
