@@ -27,7 +27,7 @@ export const BannerAdmin = () => {
   // Hero Banners State
   const [banners, setBanners] = useState<BannerSlide[]>(() => {
     try {
-      const saved = localStorage.getItem('tcv_hero_banners_v5') || localStorage.getItem('tcv_hero_banners');
+      const saved = localStorage.getItem('tcv_hero_banners_v6') || localStorage.getItem('tcv_hero_banners_v5');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((s: any) => typeof s?.image === 'string')) {
@@ -48,7 +48,7 @@ export const BannerAdmin = () => {
   // Category Banners State (Perfume, Bags, Watches)
   const [categories, setCategories] = useState<CategoryBanner[]>(() => {
     try {
-      const saved = localStorage.getItem('tcv_category_banners');
+      const saved = localStorage.getItem('tcv_category_banners_v2');
       return saved ? JSON.parse(saved) : DEFAULT_CATEGORY_BANNERS;
     } catch {
       return DEFAULT_CATEGORY_BANNERS;

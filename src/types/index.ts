@@ -5,6 +5,7 @@ export interface ProductImage {
   alt: string;
   color?: string;
   isMain?: boolean;
+  position?: 'left' | 'center' | 'right';
 }
 
 export interface ProductVariant {

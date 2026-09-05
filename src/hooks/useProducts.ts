@@ -7,7 +7,7 @@ export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>(() => {
     const deletedIds = getDeletedProductIds();
     try {
-      const saved = localStorage.getItem('tcv_products');
+      const saved = localStorage.getItem('tcv_products_v2');
       if (saved) {
         const parsed = JSON.parse(saved) as Product[];
         if (Array.isArray(parsed) && parsed.length > 0) {

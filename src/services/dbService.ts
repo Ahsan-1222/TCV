@@ -109,7 +109,7 @@ const seedProductsIfEmpty = async () => {
     const deletedIds = getDeletedProductIds();
     let prodsToSeed = initialProducts.filter(p => !deletedIds.includes(p.id));
     try {
-      const cached = localStorage.getItem('tcv_products');
+      const cached = localStorage.getItem('tcv_products_v2');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -119,7 +119,7 @@ const seedProductsIfEmpty = async () => {
     } catch {}
 
     for (const prod of prodsToSeed) {
-      await setDoc(doc(db, collections.products, prod.id), prod, { merge: true });
+      await setDoc(doc(db, collections.products, prod.id), prod);
     }
   } catch (err) {
     console.error('Error seeding products to Firestore:', err);
@@ -127,10 +127,21 @@ const seedProductsIfEmpty = async () => {
 };
 
 // Helper to seed initial banners to Firestore if empty
+// Uses cached banners first so deleted banners don't come back
 const seedBannersIfEmpty = async () => {
   try {
+    let slidesToSeed = DEFAULT_BANNERS;
+    try {
+      const cached = localStorage.getItem('tcv_hero_banners_v6') || localStorage.getItem('tcv_hero_banners_v5') || localStorage.getItem('tcv_hero_banners');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((s: any) => s && typeof s.image === 'string')) {
+          slidesToSeed = parsed;
+        }
+      }
+    } catch {}
     await setDoc(doc(db, collections.banners, 'hero_banners'), {
-      slides: DEFAULT_BANNERS,
+      slides: slidesToSeed,
       updatedAt: new Date().toISOString(),
     });
   } catch (err) {
@@ -172,7 +183,7 @@ export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() 
           seedProductsIfEmpty();
           let fallback = initialProducts.filter(p => !deletedIds.includes(p.id));
           try {
-            const cached = localStorage.getItem('tcv_products');
+            const cached = localStorage.getItem('tcv_products_v2');
             if (cached) {
               const parsed = JSON.parse(cached);
               if (Array.isArray(parsed) && parsed.length > 0) {
@@ -197,7 +208,7 @@ export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() 
         const sortedProds = sortProductsBySequence(prods);
 
         try {
-          localStorage.setItem('tcv_products', JSON.stringify(sortedProds));
+          localStorage.setItem('tcv_products_v2', JSON.stringify(sortedProds));
           localStorage.setItem('tcv_admin_products', JSON.stringify(sortedProds));
         } catch {}
 
@@ -209,7 +220,7 @@ export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() 
         const deletedIds = getDeletedProductIds();
         let fallback = initialProducts.filter(p => !deletedIds.includes(p.id));
         try {
-          const cached = localStorage.getItem('tcv_products');
+          const cached = localStorage.getItem('tcv_products_v2');
           if (cached) {
             const parsed = JSON.parse(cached);
             if (Array.isArray(parsed) && parsed.length > 0) {
@@ -245,7 +256,7 @@ export const saveProductSequenceToDB = async (reorderedProducts: Product[]): Pro
   }));
 
   try {
-    localStorage.setItem('tcv_products', JSON.stringify(updatedList));
+    localStorage.setItem('tcv_products_v2', JSON.stringify(updatedList));
     localStorage.setItem('tcv_admin_products', JSON.stringify(updatedList));
   } catch (err) {
     console.warn('Failed to update local storage product sequence:', err);
@@ -253,7 +264,7 @@ export const saveProductSequenceToDB = async (reorderedProducts: Product[]): Pro
 
   // Update in Firestore
   for (const prod of updatedList) {
-    await setDoc(doc(db, collections.products, prod.id), JSON.parse(JSON.stringify(prod)), { merge: true });
+    await setDoc(doc(db, collections.products, prod.id), JSON.parse(JSON.stringify(prod)));
   }
 
   lastProductsState = updatedList;
@@ -281,13 +292,13 @@ export const saveProductToDB = async (product: Product): Promise<void> => {
   } catch {}
 
   try {
-    const cached = localStorage.getItem('tcv_products');
+    const cached = localStorage.getItem('tcv_products_v2');
     let list: Product[] = cached ? JSON.parse(cached) : [];
     const idx = list.findIndex(p => p.id === product.id);
     if (idx >= 0) list[idx] = cleanProduct;
     else list.push(cleanProduct);
     list = sortProductsBySequence(list);
-    localStorage.setItem('tcv_products', JSON.stringify(list));
+    localStorage.setItem('tcv_products_v2', JSON.stringify(list));
     localStorage.setItem('tcv_admin_products', JSON.stringify(list));
   } catch (err) {
     console.warn('Failed updating LocalStorage for product:', err);
@@ -320,7 +331,7 @@ export const deleteProductFromDB = async (productId: string): Promise<void> => {
 
   // Permanently delete associated product images from Firebase Storage
   try {
-    const cached = localStorage.getItem('tcv_products');
+    const cached = localStorage.getItem('tcv_products_v2');
     if (cached) {
       const list: Product[] = JSON.parse(cached);
       const target = list.find(p => p.id === productId);
@@ -337,16 +348,22 @@ export const deleteProductFromDB = async (productId: string): Promise<void> => {
   }
 
   try {
-    const cached = localStorage.getItem('tcv_products');
+    const cached = localStorage.getItem('tcv_products_v2');
     if (cached) {
       let list: Product[] = JSON.parse(cached);
       list = list.filter(p => p.id !== productId);
       list = sortProductsBySequence(list);
-      localStorage.setItem('tcv_products', JSON.stringify(list));
+      localStorage.setItem('tcv_products_v2', JSON.stringify(list));
       localStorage.setItem('tcv_admin_products', JSON.stringify(list));
     }
   } catch (err) {
     console.warn('Failed updating LocalStorage for deleted product:', err);
+  }
+
+  // Immediately update in-memory singleton state and notify UI subscribers
+  if (lastProductsState) {
+    lastProductsState = sortProductsBySequence(lastProductsState.filter(p => p.id !== productId));
+    productSubscribers.forEach(cb => cb(lastProductsState!));
   }
 
   await deleteDoc(doc(db, collections.products, productId));
@@ -373,7 +390,7 @@ export const subscribeBanners = (onUpdate: (banners: BannerSlide[]) => void): ((
         const validSlides = data.slides.filter((s: any) => s && typeof s.image === 'string' && s.image.trim() !== '');
         if (validSlides.length > 0) {
           try {
-            localStorage.setItem('tcv_hero_banners_v5', JSON.stringify(validSlides));
+            localStorage.setItem('tcv_hero_banners_v6', JSON.stringify(validSlides));
             localStorage.setItem('tcv_hero_banners', JSON.stringify(validSlides));
           } catch {}
           onUpdate(validSlides);
@@ -386,7 +403,7 @@ export const subscribeBanners = (onUpdate: (banners: BannerSlide[]) => void): ((
     (error) => {
       console.warn('Firestore banners snapshot error, using default or cached banners:', error);
       try {
-        const cached = localStorage.getItem('tcv_hero_banners_v5') || localStorage.getItem('tcv_hero_banners');
+        const cached = localStorage.getItem('tcv_hero_banners_v6') || localStorage.getItem('tcv_hero_banners_v5');
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -408,7 +425,7 @@ export const subscribeBanners = (onUpdate: (banners: BannerSlide[]) => void): ((
 export const saveBannersToDB = async (banners: BannerSlide[]): Promise<void> => {
   const cleanBanners = JSON.parse(JSON.stringify(banners));
   try {
-    localStorage.setItem('tcv_hero_banners_v5', JSON.stringify(cleanBanners));
+    localStorage.setItem('tcv_hero_banners_v6', JSON.stringify(cleanBanners));
     localStorage.setItem('tcv_hero_banners', JSON.stringify(cleanBanners));
   } catch (err) {
     console.warn('Failed to set localStorage tcv_hero_banners:', err);
@@ -425,7 +442,7 @@ const seedCategoryBannersIfEmpty = async () => {
   try {
     let initialToSeed = DEFAULT_CATEGORY_BANNERS;
     try {
-      const cached = localStorage.getItem('tcv_category_banners');
+      const cached = localStorage.getItem('tcv_category_banners_v2');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -456,7 +473,7 @@ export const subscribeCategoryBanners = (onUpdate: (categories: CategoryBanner[]
         isSeeding = true;
         seedCategoryBannersIfEmpty();
         try {
-          const cached = localStorage.getItem('tcv_category_banners');
+          const cached = localStorage.getItem('tcv_category_banners_v2');
           if (cached) {
             const parsed = JSON.parse(cached);
             if (Array.isArray(parsed) && parsed.length > 0) {
@@ -472,12 +489,12 @@ export const subscribeCategoryBanners = (onUpdate: (categories: CategoryBanner[]
       const data = snapshot.data();
       if (data && Array.isArray(data.slides) && data.slides.length > 0) {
         try {
-          localStorage.setItem('tcv_category_banners', JSON.stringify(data.slides));
+          localStorage.setItem('tcv_category_banners_v2', JSON.stringify(data.slides));
         } catch {}
         onUpdate(data.slides);
       } else {
         try {
-          const cached = localStorage.getItem('tcv_category_banners');
+          const cached = localStorage.getItem('tcv_category_banners_v2');
           if (cached) {
             const parsed = JSON.parse(cached);
             if (Array.isArray(parsed) && parsed.length > 0) {
@@ -492,7 +509,7 @@ export const subscribeCategoryBanners = (onUpdate: (categories: CategoryBanner[]
     (error) => {
       console.warn('Firestore category banners snapshot error, using fallback cache:', error);
       try {
-        const cached = localStorage.getItem('tcv_category_banners');
+        const cached = localStorage.getItem('tcv_category_banners_v2');
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -514,7 +531,7 @@ export const subscribeCategoryBanners = (onUpdate: (categories: CategoryBanner[]
 export const saveCategoryBannersToDB = async (categories: CategoryBanner[]): Promise<void> => {
   const cleanCategories = JSON.parse(JSON.stringify(categories));
   try {
-    localStorage.setItem('tcv_category_banners', JSON.stringify(cleanCategories));
+    localStorage.setItem('tcv_category_banners_v2', JSON.stringify(cleanCategories));
   } catch (err) {
     console.warn('Failed to set localStorage tcv_category_banners:', err);
   }

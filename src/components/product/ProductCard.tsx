@@ -1,12 +1,15 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
+import gsap from 'gsap';
 import type { Product } from '../../types';
 import { formatPrice } from '../../lib/utils';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 
 export const ProductCard = ({ product, index = 0 }: { product: Product; index?: number }) => {
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
   const inWishlist = isInWishlist(product.id);
@@ -15,6 +18,34 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0;
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    const rotateX = (-y / rect.height) * 10;
+    const rotateY = (x / rect.width) * 10;
+
+    gsap.to(cardRef.current, {
+      rotateX,
+      rotateY,
+      transformPerspective: 1000,
+      duration: 0.35,
+      ease: 'power2.out',
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (!cardRef.current) return;
+    gsap.to(cardRef.current, {
+      rotateX: 0,
+      rotateY: 0,
+      duration: 0.5,
+      ease: 'power2.out',
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.96 }}
@@ -22,6 +53,10 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
       viewport={{ once: true, margin: '-50px' }}
       transition={{ delay: index * 0.06, duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
       className="group relative flex flex-col"
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ willChange: 'transform' }}
     >
       {/* Image */}
       <div className="relative aspect-[4/5] overflow-hidden bg-[#161616] rounded-sm flex items-center justify-center">
@@ -36,7 +71,9 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
                 target.src = 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format';
               }
             }}
-            className="w-full h-full object-cover object-center max-w-full transition-transform duration-[2s] ease-out group-hover:scale-105"
+            className={`w-full h-full object-cover max-w-full transition-transform duration-[2s] ease-out group-hover:scale-105 ${
+              mainImage.position === 'left' ? 'object-left' : mainImage.position === 'right' ? 'object-right' : 'object-center'
+            }`}
             loading="lazy"
           />
           {/* Dark overlay on hover */}

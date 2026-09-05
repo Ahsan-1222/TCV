@@ -48,8 +48,7 @@ export const products: Product[] = [
     comparePrice: 4200,
     stock: 34,
     images: [
-      { url: p('WhatsApp Image 2026-07-17 at 8.30.52 PM (2).jpeg'), alt: 'ROOH BLOOM bottle front', isMain: true },
-      { url: p('trio-bundle.jpg'), alt: 'ROOH BLOOM box trio', isMain: false },
+      { url: p('trio-bundle.jpg'), alt: 'ROOH BLOOM bottle front', isMain: true, position: 'left' },
       { url: p('curation-art.jpg'), alt: 'ROOH BLOOM velvet spice staging', isMain: false },
     ],
     tags: ['bloom', 'floral', 'spicy', 'unisex', 'bestseller'],
@@ -82,8 +81,8 @@ export const products: Product[] = [
     comparePrice: 4750,
     stock: 22,
     images: [
-      { url: p('curation-art.jpg'), alt: 'ROOH VELVET SPICE bottle', isMain: true },
-      { url: p('trio-bundle.jpg'), alt: 'ROOH VELVET SPICE box trio', isMain: false },
+      { url: p('curation-art.jpg'), alt: 'ROOH VELVET SPICE bottle', isMain: true, position: 'center' },
+      { url: p('trio-bundle.jpg'), alt: 'ROOH VELVET SPICE box trio', isMain: false, position: 'center' },
     ],
     tags: ['velvet spice', 'spicy', 'cardamom', 'woody', 'unisex', 'signature'],
     featured: true,
@@ -114,8 +113,8 @@ export const products: Product[] = [
     comparePrice: 4800,
     stock: 18,
     images: [
-      { url: p('WhatsApp Image 2026-07-17 at 8.30.52 PM (1).jpeg'), alt: 'ROOH NOIR bottle dark', isMain: true },
-      { url: p('WhatsApp Image 2026-07-17 at 8.30.52 PM (4).jpeg'), alt: 'ROOH set marble', isMain: false },
+      { url: p('WhatsApp Image 2026-07-17 at 8.30.52 PM (1).jpeg'), alt: 'ROOH NOIR bottle dark', isMain: true, position: 'right' },
+      { url: p('trio-bundle.jpg'), alt: 'ROOH set trio', isMain: false, position: 'right' },
     ],
     tags: ['oriental', 'warm', 'oud', 'evening', 'luxury'],
     featured: true,
@@ -144,8 +143,8 @@ export const products: Product[] = [
     comparePrice: 6500,
     stock: 12,
     images: [
-      { url: p('WhatsApp Image 2026-07-17 at 8.30.51 PM (1).jpeg'), alt: 'ROOH GOLD bottle amber', isMain: true },
-      { url: p('WhatsApp Image 2026-07-17 at 8.30.51 PM.jpeg'), alt: 'ROOH GOLD with box', isMain: false },
+      { url: p('WhatsApp Image 2026-07-17 at 8.30.52 PM (2).jpeg'), alt: 'ROOH GOLD bottle amber', isMain: true, position: 'left' },
+      { url: p('WhatsApp Image 2026-07-17 at 8.30.51 PM (1).jpeg'), alt: 'ROOH GOLD with box', isMain: false },
     ],
     tags: ['amber', 'oud', 'spicy', 'extrait', 'premium'],
     featured: true,
@@ -173,8 +172,8 @@ export const products: Product[] = [
     comparePrice: 6200,
     stock: 20,
     images: [
-      { url: p('WhatsApp Image 2026-07-17 at 8.30.51 PM.jpeg'), alt: 'ROOH VELVET clear bottle', isMain: true },
-      { url: p('WhatsApp Image 2026-07-17 at 8.30.51 PM (1).jpeg'), alt: 'ROOH GOLD VELVET duo', isMain: false },
+      { url: p('WhatsApp Image 2026-07-17 at 8.30.52 PM (2).jpeg'), alt: 'ROOH VELVET clear bottle', isMain: true, position: 'right' },
+      { url: p('WhatsApp Image 2026-07-17 at 8.30.51 PM.jpeg'), alt: 'ROOH VELVET box set', isMain: false },
     ],
     tags: ['musk', 'suede', 'soft', 'daily', 'minimalist'],
     featured: true,

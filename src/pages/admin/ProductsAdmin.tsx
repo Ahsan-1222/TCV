@@ -3,17 +3,28 @@ import { products as initialProducts } from '../../data/products';
 import type { Product } from '../../types';
 import { formatPrice } from '../../lib/utils';
 import { Plus, Edit3, Trash2, Upload, Image as ImageIcon, ArrowUp, ArrowDown, Save, Check, ListOrdered } from 'lucide-react';
-import { subscribeProducts, saveProductToDB, deleteProductFromDB, uploadImageFile, saveProductSequenceToDB, sortProductsBySequence, deleteImageFile } from '../../services/dbService';
+import { subscribeProducts, saveProductToDB, deleteProductFromDB, uploadImageFile, saveProductSequenceToDB, sortProductsBySequence, deleteImageFile, getDeletedProductIds } from '../../services/dbService';
 
 export const ProductsAdmin = () => {
   const [products, setProducts] = useState<Product[]>(() => {
+    const deletedIds = getDeletedProductIds();
     try {
       const savedAdmin = localStorage.getItem('tcv_admin_products');
-      if (savedAdmin) return sortProductsBySequence(JSON.parse(savedAdmin));
-      const saved = localStorage.getItem('tcv_products');
-      if (saved) return sortProductsBySequence(JSON.parse(saved));
+      if (savedAdmin) {
+        const parsed = JSON.parse(savedAdmin);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return sortProductsBySequence(parsed.filter((p: Product) => !deletedIds.includes(p.id)));
+        }
+      }
+      const saved = localStorage.getItem('tcv_products_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return sortProductsBySequence(parsed.filter((p: Product) => !deletedIds.includes(p.id)));
+        }
+      }
     } catch {}
-    return sortProductsBySequence(initialProducts);
+    return sortProductsBySequence(initialProducts.filter(p => !deletedIds.includes(p.id)));
   });
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -138,11 +149,12 @@ export const ProductsAdmin = () => {
         ? Number(form.displayOrder)
         : (editing?.displayOrder || products.length + 1);
 
+      const generatedSlug = form.name!.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       const newProduct: Product = {
-        id: editing?.id || Math.random().toString(36).slice(2, 9),
+        id: editing?.id || (generatedSlug ? `prod-${generatedSlug}` : `prod-${Date.now()}`),
         sku: form.sku || `SKU-${Date.now()}`,
         name: form.name!,
-        slug: form.name!.toLowerCase().replace(/\s+/g, '-'),
+        slug: generatedSlug,
         description: form.description || '',
         shortDescription: form.shortDescription || '',
         category: (form.category as any) || 'perfume',

@@ -134,7 +134,9 @@ export const ProductDetail = () => {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="aspect-[4/5] sm:aspect-[4/5] max-h-[580px] sm:max-h-none bg-[#111111] overflow-hidden relative rounded-sm flex items-center justify-center border border-white/5 shadow-2xl"
             >
-              <img src={mainImg.url} alt={mainImg.alt} className="w-full h-full object-cover object-center max-w-full" />
+              <img src={mainImg.url} alt={mainImg.alt} className={`w-full h-full object-cover max-w-full ${
+                mainImg?.position === 'left' ? 'object-left' : mainImg?.position === 'right' ? 'object-right' : 'object-center'
+              }`} />
               {discount > 0 && (
                 <div className="absolute top-4 left-4 bg-crown-gold text-[#0A0A0A] text-[10px] tracking-widest uppercase px-2.5 py-1 font-semibold shadow-lg">
                   -{discount}%

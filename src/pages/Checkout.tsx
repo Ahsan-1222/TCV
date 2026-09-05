@@ -154,16 +154,16 @@ export const Checkout = () => {
               <button 
                 type="button"
                 onClick={() => setPayment('easypaisa')}
-                className={`py-3 sm:py-4 text-[11px] sm:text-[13px] tracking-wider sm:tracking-widest font-bold uppercase transition-colors rounded-lg flex items-center justify-center ${payment === 'easypaisa' ? 'bg-[#2A2522] text-white' : 'bg-[#E3D1C4]/40 border border-transparent text-[#2A2522] hover:bg-[#E3D1C4]/60'}`}
+                className={`py-3 sm:py-4 text-[11px] sm:text-[13px] tracking-wider sm:tracking-widest font-semibold uppercase transition-all rounded-sm flex items-center justify-center border ${payment === 'easypaisa' ? 'bg-crown-gold text-[#0A0A0A] border-crown-gold shadow-md' : 'bg-white/5 border-white/15 text-white/70 hover:border-crown-gold/60 hover:text-white'}`}
               >
-                EASYPAISA
+                EASYPAISA (Save Rs. 100)
               </button>
               <button 
                 type="button"
                 onClick={() => setPayment('cod')}
-                className={`py-3 sm:py-4 text-[11px] sm:text-[13px] tracking-wider sm:tracking-widest font-bold uppercase transition-colors rounded-lg flex items-center justify-center ${payment === 'cod' ? 'bg-[#2A2522] text-white' : 'bg-[#E3D1C4]/40 border border-transparent text-[#2A2522] hover:bg-[#E3D1C4]/60'}`}
+                className={`py-3 sm:py-4 text-[11px] sm:text-[13px] tracking-wider sm:tracking-widest font-semibold uppercase transition-all rounded-sm flex items-center justify-center border ${payment === 'cod' ? 'bg-crown-gold text-[#0A0A0A] border-crown-gold shadow-md' : 'bg-white/5 border-white/15 text-white/70 hover:border-crown-gold/60 hover:text-white'}`}
               >
-                COD
+                Cash On Delivery (COD)
               </button>
             </div>
 

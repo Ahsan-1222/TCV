@@ -53,6 +53,7 @@ export const FeaturedCategories = () => {
                   <img
                     src={c.image}
                     alt={c.title}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format'; }}
                     className="w-full h-full object-cover transition-transform duration-700 group-active:scale-110"
                   />
                   <div className="absolute inset-0 bg-black/20" />
