@@ -1,13 +1,20 @@
 import { useSearchParams } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useProducts } from '../hooks/useProducts';
 import { ProductGrid } from '../components/product/ProductGrid';
+import { trackSearch } from '../services/metaPixel';
 
 export const SearchPage = () => {
   const [params] = useSearchParams();
   const q = params.get('q') || '';
   const [query, setQuery] = useState(q);
   const products = useProducts();
+
+  useEffect(() => {
+    if (query.trim()) {
+      trackSearch(query);
+    }
+  }, [query]);
 
   const filtered = useMemo(() => {
     if (!query) return [];

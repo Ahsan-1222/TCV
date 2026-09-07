@@ -9,6 +9,7 @@ import { ProductGrid } from '../components/product/ProductGrid';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { saveProductToDB } from '../services/dbService';
+import { trackViewContent } from '../services/metaPixel';
 import type { Product, ProductReview } from '../types';
 
 export const ProductDetail = () => {
@@ -29,7 +30,12 @@ export const ProductDetail = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reviewSuccessMsg, setReviewSuccessMsg] = useState('');
 
-  useEffect(() => { window.scrollTo(0, 0); }, [slug]);
+  useEffect(() => { 
+    window.scrollTo(0, 0); 
+    if (product) {
+      trackViewContent(product);
+    }
+  }, [slug, product?.id]);
 
   if (!product) return (
     <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-white/40 text-[13px] tracking-widest uppercase">

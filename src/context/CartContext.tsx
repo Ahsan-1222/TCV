@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { CartItem, Product } from '../types';
+import { trackAddToCart } from '../services/metaPixel';
 
 interface CartContextType {
   items: CartItem[];
@@ -46,6 +47,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const imgUrl = selectedImage || defaultImage;
 
     const maxStock = typeof product.stock === 'number' && product.stock > 0 ? product.stock : 99;
+
+    // Track Meta Pixel AddToCart event
+    trackAddToCart(product, quantity);
 
     setItems(prev => {
       const existingIdx = prev.findIndex(i => i.product.id === product.id && i.selectedColor === color);

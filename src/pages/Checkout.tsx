@@ -1,11 +1,12 @@
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../lib/utils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { sendOrderNotificationEmail } from '../services/emailService';
+import { trackInitiateCheckout, trackPurchase } from '../services/metaPixel';
 
 export const Checkout = () => {
   const { items, total, clearCart } = useCart();
@@ -13,6 +14,12 @@ export const Checkout = () => {
   const [payment, setPayment] = useState<'cod' | 'easypaisa'>('cod');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (items.length > 0) {
+      trackInitiateCheckout(items, total);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +108,9 @@ export const Checkout = () => {
           console.error("Email notification dispatch error:", err);
         });
       }
+
+      // Track Meta Pixel Purchase event
+      trackPurchase(orderId, finalTotal, items);
 
       clearCart();
       navigate(`/checkout/success?order=${orderId}`);

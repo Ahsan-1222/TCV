@@ -40,6 +40,8 @@ const Loading = () => (
   </div>
 );
 
+import { MetaPixelTracker } from './components/ui/MetaPixelTracker';
+
 function App() {
   return (
     <ErrorBoundary>
@@ -47,6 +49,7 @@ function App() {
         <CartProvider>
           <WishlistProvider>
             <BrowserRouter>
+              <MetaPixelTracker />
               <ScrollProgress />
               <div className="min-h-screen flex flex-col bg-[#0A0A0A]">
                 <Routes>

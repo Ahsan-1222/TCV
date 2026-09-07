@@ -64,5 +64,8 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
     },
+    optimizeDeps: {
+      include: ['gsap', 'framer-motion', 'lucide-react'],
+    },
   };
 });
