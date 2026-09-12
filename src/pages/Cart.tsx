@@ -109,6 +109,14 @@ export const Cart = () => {
             <div className="space-y-2.5">
               <Link
                 to="/checkout"
+                onClick={() => {
+                  // Meta Pixel — InitiateCheckout
+                  (window as any).fbq?.('track', 'InitiateCheckout', {
+                    value: grandTotal,
+                    currency: 'PKR',
+                    num_items: items.reduce((s, i) => s + i.quantity, 0),
+                  });
+                }}
                 className="block bg-crown-gold text-[#0A0A0A] text-center py-4 text-[11px] tracking-[0.25em] uppercase font-semibold hover:bg-crown-gold-dark transition-colors"
               >
                 Checkout — COD Available

@@ -279,7 +279,18 @@ export const ProductDetail = () => {
                 </button>
               </div>
               <button
-                onClick={() => addToCart(product, qty, selectedColorName, mainImg.url)}
+                onClick={() => {
+                  addToCart(product, qty, selectedColorName, mainImg.url);
+                  // Meta Pixel — AddToCart
+                  (window as any).fbq?.('track', 'AddToCart', {
+                    content_ids: [product.id],
+                    content_name: product.name,
+                    content_type: 'product',
+                    value: product.price * qty,
+                    currency: 'PKR',
+                    num_items: qty,
+                  });
+                }}
                 className="flex-1 min-w-[160px] h-12 bg-crown-gold text-[#0A0A0A] text-[10px] sm:text-[11px] tracking-[0.2em] uppercase font-semibold hover:bg-crown-gold-dark transition-colors flex justify-center items-center"
               >
                 Add to Cart — {formatPrice(product.price * qty)}
