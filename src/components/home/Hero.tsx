@@ -26,7 +26,16 @@ export const Hero = () => {
     return () => clearInterval(timer);
   }, [heroSlides.length]);
 
-  const slide = heroSlides[currentSlide] || heroSlides[0];
+  const defaultSlide = {
+    subtitle: 'The Crown Vault',
+    heading: 'Curated Elegance',
+    description: 'Experience refined luxury and unmatched craftsmanship across our collections.',
+    cta: 'Explore Collection',
+    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1600&auto=format',
+    link: '/shop',
+  };
+
+  const slide = heroSlides[currentSlide] || heroSlides[0] || defaultSlide;
 
   const getSlideTarget = (s: typeof slide) => {
     if (s.link) return s.link;

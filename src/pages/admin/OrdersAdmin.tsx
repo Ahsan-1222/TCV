@@ -137,7 +137,7 @@ export const OrdersAdmin = () => {
                     <option value="refunded">Refunded</option>
                   </select>
                   <button 
-                    onClick={() => handleDeleteOrder(order.id)}
+                    onClick={() => handleDeleteOrder(order.id || order.orderId)}
                     className="ml-2 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all rounded-sm"
                     title="Delete Order"
                   >

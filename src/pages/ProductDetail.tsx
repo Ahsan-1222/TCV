@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { useProducts } from '../hooks/useProducts';
 import { formatPrice, whatsappLink, productWhatsAppMessage } from '../lib/utils';
 import { useCart } from '../context/CartContext';
@@ -30,12 +30,21 @@ export const ProductDetail = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reviewSuccessMsg, setReviewSuccessMsg] = useState('');
 
+  useLayoutEffect(() => { 
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const rAf = requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+    return () => cancelAnimationFrame(rAf);
+  }, [slug]);
+
   useEffect(() => { 
-    window.scrollTo(0, 0); 
+    setActiveImage(0);
+    setQty(1);
     if (product) {
       trackViewContent(product);
     }
-  }, [slug, product?.id]);
+  }, [slug, product]);
 
   if (!product) return (
     <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-white/40 text-[13px] tracking-widest uppercase">
@@ -43,10 +52,15 @@ export const ProductDetail = () => {
     </div>
   );
 
-  const mainImg = product.images[activeImage] || product.images[0];
-  const selectedColorName = mainImg?.color || mainImg?.alt || (product.images.length > 1 ? `Option ${activeImage + 1}` : undefined);
+  const productImages = product.images && product.images.length > 0
+    ? product.images
+    : [{ url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format', alt: product.name, isMain: true }];
+  const mainImg = productImages[activeImage] || productImages[0];
+  const selectedColorName = mainImg?.color || mainImg?.alt || (productImages.length > 1 ? `Option ${activeImage + 1}` : undefined);
   const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
   const inWishlist = isInWishlist(product.id);
+  const isOutOfStock = typeof product.stock === 'number' && product.stock <= 0;
+  const maxAvailable = typeof product.stock === 'number' && product.stock > 0 ? product.stock : 99;
   const discount = product.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0;
@@ -151,16 +165,16 @@ export const ProductDetail = () => {
             </motion.div>
 
             {/* Thumbnails */}
-            {product.images.length > 1 && (
+            {productImages.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
-                {product.images.map((img, i) => (
+                {productImages.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
                     className={`aspect-square bg-[#111111] overflow-hidden border-2 transition-all duration-200 ${activeImage === i ? 'border-crown-gold' : 'border-transparent opacity-50 hover:opacity-100'
                       }`}
                   >
-                    <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+                    <img src={img.url} alt={img.alt || product.name} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -230,7 +244,7 @@ export const ProductDetail = () => {
             </div>
 
             {/* Color / Variant Selector */}
-            {product.images.length > 1 && (
+            {productImages.length > 1 && (
               <div className="mt-5 border-t border-white/8 pt-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[10px] tracking-[0.25em] uppercase text-white/50 font-medium">
@@ -243,7 +257,7 @@ export const ProductDetail = () => {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {product.images.map((img, i) => {
+                  {productImages.map((img, i) => {
                     const colorName = img.color || img.alt || `Option ${i + 1}`;
                     const isSelected = activeImage === i;
                     return (
@@ -270,30 +284,34 @@ export const ProductDetail = () => {
             {/* Qty + Add to Cart */}
             <div className="mt-6 flex flex-wrap sm:flex-nowrap gap-2">
               <div className="flex items-center border border-white/15 shrink-0">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-12 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition-all">
+                <button
+                  onClick={() => setQty(prev => Math.max(1, prev - 1))}
+                  disabled={qty <= 1 || isOutOfStock}
+                  className="w-10 h-12 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
                   <Minus size={13} />
                 </button>
-                <span className="w-10 text-center text-[13px] text-white">{qty}</span>
-                <button onClick={() => setQty(qty + 1)} className="w-10 h-12 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition-all">
+                <span className="w-10 text-center text-[13px] text-white">{isOutOfStock ? 0 : qty}</span>
+                <button
+                  onClick={() => setQty(prev => Math.min(maxAvailable, prev + 1))}
+                  disabled={isOutOfStock || qty >= maxAvailable}
+                  className="w-10 h-12 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
                   <Plus size={13} />
                 </button>
               </div>
               <button
+                disabled={isOutOfStock}
                 onClick={() => {
                   addToCart(product, qty, selectedColorName, mainImg.url);
-                  // Meta Pixel — AddToCart
-                  (window as any).fbq?.('track', 'AddToCart', {
-                    content_ids: [product.id],
-                    content_name: product.name,
-                    content_type: 'product',
-                    value: product.price * qty,
-                    currency: 'PKR',
-                    num_items: qty,
-                  });
                 }}
-                className="flex-1 min-w-[160px] h-12 bg-crown-gold text-[#0A0A0A] text-[10px] sm:text-[11px] tracking-[0.2em] uppercase font-semibold hover:bg-crown-gold-dark transition-colors flex justify-center items-center"
+                className={`flex-1 min-w-[160px] h-12 text-[10px] sm:text-[11px] tracking-[0.2em] uppercase font-semibold transition-colors flex justify-center items-center ${
+                  isOutOfStock
+                    ? 'bg-white/10 text-white/30 cursor-not-allowed border border-white/10'
+                    : 'bg-crown-gold text-[#0A0A0A] hover:bg-crown-gold-dark cursor-pointer'
+                }`}
               >
-                Add to Cart — {formatPrice(product.price * qty)}
+                {isOutOfStock ? 'Out of Stock' : `Add to Cart — ${formatPrice(product.price * qty)}`}
               </button>
               <button
                 onClick={() => inWishlist ? removeFromWishlist(product.id) : addToWishlist(product)}

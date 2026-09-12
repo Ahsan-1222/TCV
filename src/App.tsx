@@ -9,6 +9,7 @@ import { CartDrawer } from './components/layout/CartDrawer';
 import { WhatsAppFloat } from './components/ui/WhatsAppFloat';
 import { ScrollProgress } from './components/ui/ScrollProgress';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { ScrollToTop } from './components/layout/ScrollToTop';
 
 // Lazy pages for code splitting
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -49,6 +50,7 @@ function App() {
         <CartProvider>
           <WishlistProvider>
             <BrowserRouter>
+              <ScrollToTop />
               <MetaPixelTracker />
               <ScrollProgress />
               <div className="min-h-screen flex flex-col bg-[#0A0A0A]">

@@ -10,17 +10,30 @@ export const SearchPage = () => {
   const [query, setQuery] = useState(q);
   const products = useProducts();
 
+  // Synchronize query state when URL parameter changes (e.g. from Header search)
   useEffect(() => {
-    if (query.trim()) {
-      trackSearch(query);
-    }
+    setQuery(q);
+  }, [q]);
+
+  // Debounced search tracking to prevent firing on every single keystroke
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    const timer = setTimeout(() => {
+      trackSearch(trimmed);
+    }, 450);
+    return () => clearTimeout(timer);
   }, [query]);
 
   const filtered = useMemo(() => {
     if (!query) return [];
     const lower = query.toLowerCase();
-    return products.filter(p => p.name.toLowerCase().includes(lower) || p.description.toLowerCase().includes(lower) || p.tags.some(t => t.toLowerCase().includes(lower)));
-  }, [query]);
+    return products.filter(p =>
+      p.name.toLowerCase().includes(lower) ||
+      p.description.toLowerCase().includes(lower) ||
+      p.tags.some(t => t.toLowerCase().includes(lower))
+    );
+  }, [query, products]);
 
   return (
     <div className="bg-[#0A0A0A] min-h-screen text-white">

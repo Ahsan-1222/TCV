@@ -13,7 +13,12 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
   const inWishlist = isInWishlist(product.id);
-  const mainImage = product.images.find(i => i.isMain) || product.images[0];
+  const mainImage = product.images?.find(i => i.isMain) || product.images?.[0] || {
+    url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format',
+    alt: product.name,
+    isMain: true
+  };
+  const isOutOfStock = typeof product.stock === 'number' && product.stock <= 0;
   const discount = product.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0;
@@ -80,12 +85,16 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-700" />
         </Link>
 
-        {/* Discount badge */}
-        {discount > 0 && (
+        {/* Stock / Discount badge */}
+        {isOutOfStock ? (
+          <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 bg-black/80 text-white/70 border border-white/20 text-[9px] tracking-widest uppercase px-2 py-1 z-10 font-medium">
+            Sold Out
+          </div>
+        ) : discount > 0 ? (
           <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 bg-crown-gold text-[#0A0A0A] text-[9px] tracking-widest uppercase px-2 py-1 z-10 font-semibold">
             -{discount}%
           </div>
-        )}
+        ) : null}
 
         {/* Wishlist */}
         <button
@@ -103,10 +112,18 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
         {/* Quick Add — slides up on hover */}
         <div className="absolute bottom-0 inset-x-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-10">
           <button
-            onClick={(e) => { e.preventDefault(); addToCart(product); }}
-            className="w-full bg-crown-gold text-[#0A0A0A] text-[9px] sm:text-[10px] tracking-[0.25em] uppercase py-3 sm:py-3.5 font-semibold hover:bg-crown-gold-dark transition-colors duration-300"
+            disabled={isOutOfStock}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isOutOfStock) addToCart(product);
+            }}
+            className={`w-full text-[9px] sm:text-[10px] tracking-[0.25em] uppercase py-3 sm:py-3.5 font-semibold transition-colors duration-300 ${
+              isOutOfStock
+                ? 'bg-neutral-800 text-white/40 cursor-not-allowed'
+                : 'bg-crown-gold text-[#0A0A0A] hover:bg-crown-gold-dark cursor-pointer'
+            }`}
           >
-            Quick Add
+            {isOutOfStock ? 'Sold Out' : 'Quick Add'}
           </button>
         </div>
       </div>

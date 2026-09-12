@@ -1,7 +1,7 @@
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../lib/utils';
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -14,12 +14,14 @@ export const Checkout = () => {
   const [payment, setPayment] = useState<'cod' | 'easypaisa'>('cod');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const hasTrackedCheckout = useRef(false);
 
   useEffect(() => {
-    if (items.length > 0) {
+    if (items.length > 0 && !hasTrackedCheckout.current) {
+      hasTrackedCheckout.current = true;
       trackInitiateCheckout(items, total);
     }
-  }, []);
+  }, [items, total]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,19 +242,22 @@ export const Checkout = () => {
       <div className="bg-[#111111] border border-white/8 p-5 sm:p-6 h-fit lg:sticky lg:top-28">
         <h3 className="font-display text-[20px] text-white mb-5">Order Summary</h3>
         <div className="space-y-4">
-          {items.map((i, idx)=>(
-            <div key={`${i.product.id}_${i.selectedColor || idx}`} className="flex gap-3">
-              <img src={i.selectedImage || (i.product.images.find(img=>img.isMain)||i.product.images[0]).url} alt={i.product.name} className="w-12 h-14 object-cover bg-[#1A1A1A] border border-white/10" />
-              <div className="flex-1">
-                <div className="text-[11px] uppercase font-medium text-white">{i.product.name}</div>
-                {i.selectedColor && (
-                  <div className="text-[9px] uppercase text-crown-gold font-medium mt-0.5">Color: {i.selectedColor}</div>
-                )}
-                <div className="text-[10px] text-white/35 mt-0.5">Qty: {i.quantity}</div>
+          {items.map((i, idx)=>{
+            const itemImg = i.selectedImage || (i.product.images?.find(img=>img.isMain) || i.product.images?.[0])?.url || 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format';
+            return (
+              <div key={`${i.product.id}_${i.selectedColor || idx}`} className="flex gap-3">
+                <img src={itemImg} alt={i.product.name} className="w-12 h-14 object-cover bg-[#1A1A1A] border border-white/10" />
+                <div className="flex-1">
+                  <div className="text-[11px] uppercase font-medium text-white">{i.product.name}</div>
+                  {i.selectedColor && (
+                    <div className="text-[9px] uppercase text-crown-gold font-medium mt-0.5">Color: {i.selectedColor}</div>
+                  )}
+                  <div className="text-[10px] text-white/35 mt-0.5">Qty: {i.quantity}</div>
+                </div>
+                <div className="text-[12px] font-semibold text-crown-gold">{formatPrice(i.product.price*i.quantity)}</div>
               </div>
-              <div className="text-[12px] font-semibold text-crown-gold">{formatPrice(i.product.price*i.quantity)}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="border-t border-white/8 mt-5 pt-4 space-y-2 text-[13px]">
           <div className="flex justify-between text-white/45"><span>Subtotal</span><span className="text-white">{formatPrice(total)}</span></div>
@@ -269,16 +274,18 @@ export const Checkout = () => {
 };
 
 export const CheckoutSuccess = () => {
-  const params = new URLSearchParams(window.location.search);
-  const orderId = params.get('order');
+  const [params] = useSearchParams();
+  const orderId = params.get('order') || 'NEW';
   return (
-    <div className="max-w-[600px] mx-auto px-8 py-20 text-center">
-      <div className="w-20 h-20 mx-auto bg-crown-gold text-white flex items-center justify-center text-3xl font-display mb-6">✓</div>
-      <h1 className="font-display text-[36px] leading-none">Order Confirmed</h1>
-      <p className="text-[13px] opacity-60 mt-4">Thank you for shopping with THE CROWN VAULT. Your order {orderId} is confirmed. Our team will contact you on WhatsApp shortly to verify your details.</p>
-      <div className="mt-8 flex gap-3 justify-center">
-        <Link to="/shop" className="bg-black text-white px-8 py-3 text-[11px] tracking-widest uppercase">Continue Shopping</Link>
-        <a href={`https://wa.me/923217244813?text=Hello%20I%20placed%20order%20${orderId}`} target="_blank" rel="noopener noreferrer" className="border px-8 py-3 text-[11px] tracking-widest uppercase">Track via WhatsApp</a>
+    <div className="max-w-[600px] mx-auto px-8 py-20 text-center text-white">
+      <div className="w-20 h-20 mx-auto bg-crown-gold text-[#0A0A0A] flex items-center justify-center text-3xl font-display mb-6 rounded-full font-bold shadow-lg">✓</div>
+      <h1 className="font-display text-[36px] leading-none text-white">Order Confirmed</h1>
+      <p className="text-[13px] text-white/60 mt-4 leading-relaxed">
+        Thank you for shopping with THE CROWN VAULT. Your order <span className="text-crown-gold font-semibold">{orderId}</span> is confirmed. Our team will contact you on WhatsApp shortly to verify your details.
+      </p>
+      <div className="mt-8 flex gap-3 justify-center flex-wrap">
+        <Link to="/shop" className="bg-crown-gold text-[#0A0A0A] px-8 py-3.5 text-[11px] tracking-widest uppercase font-semibold hover:bg-crown-gold-dark transition-colors">Continue Shopping</Link>
+        <a href={`https://wa.me/923217244813?text=Hello%20I%20placed%20order%20${encodeURIComponent(orderId)}`} target="_blank" rel="noopener noreferrer" className="border border-white/20 text-white px-8 py-3.5 text-[11px] tracking-widest uppercase hover:bg-white/10 transition-colors">Track via WhatsApp</a>
       </div>
     </div>
   );

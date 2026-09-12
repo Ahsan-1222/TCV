@@ -104,6 +104,7 @@ export const ProductsAdmin = () => {
         images: [...(prev.images || []), { url: uploadedUrl, alt: prev.name || 'Product Image', isMain: (prev.images || []).length === 0 }]
       }));
     } catch (err) {
+      console.error('Failed to upload image:', err);
       alert('Failed to upload image');
     } finally {
       setIsUploading(false);

@@ -40,7 +40,7 @@ export const Cart = () => {
           {/* Items */}
           <div className="space-y-3">
             {items.map((item, idx) => {
-              const defaultImg = (item.product.images.find(i => i.isMain) || item.product.images[0])?.url;
+              const defaultImg = (item.product.images?.find(i => i.isMain) || item.product.images?.[0])?.url || 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format';
               const imgUrl = item.selectedImage || defaultImg;
               return (
                 <div key={`${item.product.id}_${item.selectedColor || idx}`} className="flex gap-4 border border-white/8 bg-[#111111] p-4">
