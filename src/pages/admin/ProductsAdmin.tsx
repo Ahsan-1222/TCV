@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { products as initialProducts } from '../../data/products';
 import type { Product } from '../../types';
 import { formatPrice } from '../../lib/utils';
-import { Plus, Edit3, Trash2, Upload, Image as ImageIcon, ArrowUp, ArrowDown, Save, Check, ListOrdered } from 'lucide-react';
+import { Plus, Edit3, Trash2, Upload, Image as ImageIcon, ArrowUp, ArrowDown, Save, Check, ListOrdered, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { subscribeProducts, saveProductToDB, deleteProductFromDB, uploadImageFile, saveProductSequenceToDB, sortProductsBySequence, deleteImageFile, getDeletedProductIds } from '../../services/dbService';
 
 export const ProductsAdmin = () => {
@@ -40,6 +40,8 @@ export const ProductsAdmin = () => {
     shortDescription: '', description: '', featured: false,
     sku: '', tags: [], images: [], displayOrder: 1
   });
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
+  const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeProducts((prods) => {
@@ -134,6 +136,22 @@ export const ProductsAdmin = () => {
       ...prev,
       images: (prev.images || []).map((img, i) => ({ ...img, isMain: i === index }))
     }));
+  };
+
+  const handleImageReorder = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+    setForm(prev => {
+      const list = [...(prev.images || [])];
+      const [moved] = list.splice(fromIndex, 1);
+      list.splice(toIndex, 0, moved);
+      return { ...prev, images: list };
+    });
+  };
+
+  const moveImageStep = (fromIndex: number, direction: 'left' | 'right') => {
+    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= (form.images || []).length) return;
+    handleImageReorder(fromIndex, toIndex);
   };
 
   const handleSave = async () => {
@@ -309,9 +327,14 @@ export const ProductsAdmin = () => {
 
           {/* Product Images section */}
           <div className="md:col-span-2 space-y-3">
-            <label className="block text-[11px] uppercase tracking-widest text-gray-700 font-semibold">
-              Product Images (Save Dynamically to DB)
-            </label>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="block text-[11px] uppercase tracking-widest text-gray-700 font-semibold">
+                Product Images (Save Dynamically to DB)
+              </label>
+              <span className="text-[11px] text-gray-500 font-normal">
+                Drag cards to reorder sequence or use arrows (← / →)
+              </span>
+            </div>
             
             <div className="flex flex-wrap gap-2">
               <input placeholder="Paste image URL and click Add..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addImage(); }} className="border border-gray-300 bg-white px-4 py-2 text-[13px] text-[#1A1A1A] flex-1 focus:outline-none focus:border-black min-w-[200px]" />
@@ -336,20 +359,119 @@ export const ProductsAdmin = () => {
 
             <div className="flex gap-4 flex-wrap mt-3">
               {(form.images || []).map((img, i) => (
-                <div key={i} className="relative w-32 border border-gray-300 bg-gray-50 p-1.5 flex flex-col items-center group">
-                  <div className="relative w-full h-24 overflow-hidden mb-1.5">
+                <div
+                  key={i}
+                  draggable
+                  onDragStart={(e) => {
+                    const target = e.target as HTMLElement;
+                    if (target.closest('input') || target.closest('button')) {
+                      e.preventDefault();
+                      return;
+                    }
+                    setDraggedImageIndex(i);
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', `${i}`);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (dragOverImageIndex !== i) {
+                      setDragOverImageIndex(i);
+                    }
+                  }}
+                  onDragLeave={() => {
+                    if (dragOverImageIndex === i) {
+                      setDragOverImageIndex(null);
+                    }
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (draggedImageIndex !== null && draggedImageIndex !== i) {
+                      handleImageReorder(draggedImageIndex, i);
+                    }
+                    setDraggedImageIndex(null);
+                    setDragOverImageIndex(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedImageIndex(null);
+                    setDragOverImageIndex(null);
+                  }}
+                  className={`relative w-32 border p-1.5 flex flex-col items-center group transition-all select-none cursor-grab active:cursor-grabbing ${
+                    draggedImageIndex === i
+                      ? 'opacity-30 border-dashed border-black scale-95 bg-gray-200'
+                      : dragOverImageIndex === i
+                      ? 'border-black ring-2 ring-black bg-blue-50/60 scale-105 shadow-md'
+                      : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                  }`}
+                  title="Drag card or use arrows to change sequence"
+                >
+                  <div className="relative w-full h-24 overflow-hidden mb-1.5 pointer-events-none">
                     <img src={img.url} alt="" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => removeImage(i)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors z-10">✕</button>
+                    <span className="absolute top-1 left-1 bg-black/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
+                      #{i + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeImage(i);
+                      }}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors z-10 pointer-events-auto shadow-sm"
+                      title="Remove image"
+                    >
+                      ✕
+                    </button>
                   </div>
                   <input
                     placeholder="Color (e.g. Black, Gold)"
                     value={img.color || ''}
+                    draggable={false}
+                    onMouseDown={(e) => e.stopPropagation()}
                     onChange={e => updateImageColor(i, e.target.value)}
-                    className="w-full text-[10px] border border-gray-300 px-1.5 py-1 mb-1.5 bg-white focus:outline-none focus:border-black text-[#1A1A1A]"
+                    className="w-full text-[10px] border border-gray-300 px-1.5 py-1 mb-1.5 bg-white focus:outline-none focus:border-black text-[#1A1A1A] cursor-text"
                   />
-                  <button type="button" onClick={() => setMainImage(i)} className={`w-full text-[9px] py-1 text-center font-bold uppercase transition-colors ${img.isMain ? 'bg-black text-white' : 'bg-gray-200 text-gray-700 hover:bg-black hover:text-white'}`}>
+                  <button
+                    type="button"
+                    draggable={false}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMainImage(i);
+                    }}
+                    className={`w-full text-[9px] py-1 text-center font-bold uppercase transition-colors ${img.isMain ? 'bg-black text-white' : 'bg-gray-200 text-gray-700 hover:bg-black hover:text-white'}`}
+                  >
                     {img.isMain ? 'MAIN' : 'Set Main'}
                   </button>
+
+                  <div className="flex items-center justify-between w-full mt-1.5 pt-1 border-t border-gray-200">
+                    <button
+                      type="button"
+                      disabled={i === 0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImageStep(i, 'left');
+                      }}
+                      title="Move Left"
+                      className="p-1 text-gray-500 hover:text-black hover:bg-gray-200 rounded disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft size={13} />
+                    </button>
+                    <span className="text-[9px] font-medium text-gray-500 flex items-center gap-0.5 pointer-events-none">
+                      <GripVertical size={11} className="text-gray-400" /> #{i + 1}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={i === (form.images || []).length - 1}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImageStep(i, 'right');
+                      }}
+                      title="Move Right"
+                      className="p-1 text-gray-500 hover:text-black hover:bg-gray-200 rounded disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronRight size={13} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
