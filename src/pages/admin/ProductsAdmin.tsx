@@ -23,7 +23,7 @@ export const ProductsAdmin = () => {
           return sortProductsBySequence(parsed.filter((p: Product) => !deletedIds.includes(p.id)));
         }
       }
-    } catch {}
+    } catch { }
     return sortProductsBySequence(initialProducts.filter(p => !deletedIds.includes(p.id)));
   });
   const [editing, setEditing] = useState<Product | null>(null);
@@ -131,20 +131,16 @@ export const ProductsAdmin = () => {
     }));
   };
 
-  const setMainImage = (index: number) => {
-    setForm(prev => ({
-      ...prev,
-      images: (prev.images || []).map((img, i) => ({ ...img, isMain: i === index }))
-    }));
-  };
-
   const handleImageReorder = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
     setForm(prev => {
       const list = [...(prev.images || [])];
       const [moved] = list.splice(fromIndex, 1);
       list.splice(toIndex, 0, moved);
-      return { ...prev, images: list };
+      return {
+        ...prev,
+        images: list.map((img, idx) => ({ ...img, isMain: idx === 0 }))
+      };
     });
   };
 
@@ -335,11 +331,11 @@ export const ProductsAdmin = () => {
                 Drag cards to reorder sequence or use arrows (← / →)
               </span>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               <input placeholder="Paste image URL and click Add..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addImage(); }} className="border border-gray-300 bg-white px-4 py-2 text-[13px] text-[#1A1A1A] flex-1 focus:outline-none focus:border-black min-w-[200px]" />
               <button type="button" onClick={addImage} className="bg-black text-white px-5 py-2 text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-colors shrink-0">Add URL</button>
-              
+
               <input
                 type="file"
                 accept="image/*"
@@ -396,19 +392,18 @@ export const ProductsAdmin = () => {
                     setDraggedImageIndex(null);
                     setDragOverImageIndex(null);
                   }}
-                  className={`relative w-32 border p-1.5 flex flex-col items-center group transition-all select-none cursor-grab active:cursor-grabbing ${
-                    draggedImageIndex === i
+                  className={`relative w-32 border p-1.5 flex flex-col items-center group transition-all select-none cursor-grab active:cursor-grabbing ${draggedImageIndex === i
                       ? 'opacity-30 border-dashed border-black scale-95 bg-gray-200'
                       : dragOverImageIndex === i
-                      ? 'border-black ring-2 ring-black bg-blue-50/60 scale-105 shadow-md'
-                      : 'border-gray-300 bg-gray-50 hover:border-gray-400'
-                  }`}
+                        ? 'border-black ring-2 ring-black bg-blue-50/60 scale-105 shadow-md'
+                        : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                    }`}
                   title="Drag card or use arrows to change sequence"
                 >
                   <div className="relative w-full h-24 overflow-hidden mb-1.5 pointer-events-none">
                     <img src={img.url} alt="" className="w-full h-full object-cover" />
-                    <span className="absolute top-1 left-1 bg-black/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
-                      #{i + 1}
+                    <span className={`absolute top-1 left-1 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow ${i === 0 ? 'bg-black' : 'bg-black/75'}`}>
+                      #{i + 1}{i === 0 ? ' • Main' : ''}
                     </span>
                     <button
                       type="button"
@@ -428,20 +423,8 @@ export const ProductsAdmin = () => {
                     draggable={false}
                     onMouseDown={(e) => e.stopPropagation()}
                     onChange={e => updateImageColor(i, e.target.value)}
-                    className="w-full text-[10px] border border-gray-300 px-1.5 py-1 mb-1.5 bg-white focus:outline-none focus:border-black text-[#1A1A1A] cursor-text"
+                    className="w-full text-[10px] border border-gray-300 px-1.5 py-1 bg-white focus:outline-none focus:border-black text-[#1A1A1A] cursor-text"
                   />
-                  <button
-                    type="button"
-                    draggable={false}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMainImage(i);
-                    }}
-                    className={`w-full text-[9px] py-1 text-center font-bold uppercase transition-colors ${img.isMain ? 'bg-black text-white' : 'bg-gray-200 text-gray-700 hover:bg-black hover:text-white'}`}
-                  >
-                    {img.isMain ? 'MAIN' : 'Set Main'}
-                  </button>
 
                   <div className="flex items-center justify-between w-full mt-1.5 pt-1 border-t border-gray-200">
                     <button
