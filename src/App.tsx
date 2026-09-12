@@ -42,6 +42,7 @@ const Loading = () => (
 );
 
 import { MetaPixelTracker } from './components/ui/MetaPixelTracker';
+import { SmoothScroll } from './components/layout/SmoothScroll';
 
 function App() {
   return (
@@ -53,7 +54,8 @@ function App() {
               <ScrollToTop />
               <MetaPixelTracker />
               <ScrollProgress />
-              <div className="min-h-screen flex flex-col bg-[#0A0A0A]">
+              <SmoothScroll>
+                <div className="min-h-screen flex flex-col bg-[#0A0A0A]">
                 <Routes>
                   {/* Admin Routes without Header/Footer */}
                   <Route path="/admin" element={
@@ -95,7 +97,8 @@ function App() {
                     </>
                   } />
                 </Routes>
-              </div>
+                </div>
+              </SmoothScroll>
             </BrowserRouter>
           </WishlistProvider>
         </CartProvider>

@@ -3,15 +3,17 @@ import { motion, useScroll, useSpring } from 'framer-motion';
 export const ScrollProgress = () => {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 25,
-    restDelta: 0.001
+    stiffness: 140,
+    damping: 28,
+    restDelta: 0.0005,
   });
 
   return (
-    <motion.div
-      style={{ scaleX }}
-      className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#C9A86A] via-[#FFF3D1] to-[#C9A86A] z-50 origin-left shadow-[0_0_12px_rgba(201,168,106,0.8)] pointer-events-none"
-    />
+    <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+      <motion.div
+        style={{ scaleX }}
+        className="h-[2.5px] bg-gradient-to-r from-[#8C6D38] via-[#C9A86A] to-[#FFF3D1] origin-left shadow-[0_0_15px_rgba(201,168,106,0.85)]"
+      />
+    </div>
   );
 };
