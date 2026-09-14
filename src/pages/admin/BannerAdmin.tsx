@@ -282,12 +282,15 @@ export const BannerAdmin = () => {
                 <div className="p-4 md:p-6 grid md:grid-cols-[240px_1fr] gap-6 text-[#1A1A1A]">
                   <div>
                     <div className="aspect-[3/2] bg-[#F8F6F3] overflow-hidden mb-3 border border-gray-200">
-                      <img
-                        src={banner.image}
-                        alt="Banner preview"
-                        className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Image+Preview'; }}
-                      />
+                      {banner.image ? (
+                        <img
+                          src={banner.image}
+                          alt="Banner preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Image</div>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -424,12 +427,15 @@ export const BannerAdmin = () => {
                 <div className="p-4 flex-1 space-y-4 text-[#1A1A1A]">
                   {/* Category Image Preview */}
                   <div className="aspect-[4/3] bg-[#F8F6F3] overflow-hidden border border-gray-200 relative group">
-                    <img
-                      src={cat.image}
-                      alt={cat.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Category+Image'; }}
-                    />
+                    {cat.image ? (
+                      <img
+                        src={cat.image}
+                        alt={cat.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Image</div>
+                    )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[11px] uppercase tracking-widest pointer-events-none">
                       Preview
                     </div>

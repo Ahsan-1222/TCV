@@ -243,10 +243,14 @@ export const Checkout = () => {
         <h3 className="font-display text-[20px] text-white mb-5">Order Summary</h3>
         <div className="space-y-4">
           {items.map((i, idx)=>{
-            const itemImg = i.selectedImage || (i.product.images?.find(img=>img.isMain) || i.product.images?.[0])?.url || 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format';
+            const itemImg = i.selectedImage || (i.product.images?.find(img=>img.isMain) || i.product.images?.[0])?.url || '';
             return (
               <div key={`${i.product.id}_${i.selectedColor || idx}`} className="flex gap-3">
-                <img src={itemImg} alt={i.product.name} className="w-12 h-14 object-cover bg-[#1A1A1A] border border-white/10" />
+                {itemImg ? (
+                  <img src={itemImg} alt={i.product.name} className="w-12 h-14 object-cover bg-[#1A1A1A] border border-white/10" />
+                ) : (
+                  <div className="w-12 h-14 bg-[#1A1A1A] border border-white/10 shrink-0" />
+                )}
                 <div className="flex-1">
                   <div className="text-[11px] uppercase font-medium text-white">{i.product.name}</div>
                   {i.selectedColor && (

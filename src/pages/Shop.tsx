@@ -66,6 +66,7 @@ export const Shop = () => {
   const [sort, setSort] = useState<SortKey>('featured');
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
+  const sortRefMobile = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     let list = [...products];
@@ -95,7 +96,10 @@ export const Shop = () => {
   useEffect(() => {
     if (!sortOpen) return;
     const onDown = (e: MouseEvent) => {
-      if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false);
+      const target = e.target as Node;
+      const insideDesktop = sortRef.current && sortRef.current.contains(target);
+      const insideMobile = sortRefMobile.current && sortRefMobile.current.contains(target);
+      if (!insideDesktop && !insideMobile) setSortOpen(false);
     };
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSortOpen(false);
     document.addEventListener('mousedown', onDown);
@@ -171,9 +175,10 @@ export const Shop = () => {
       </section>
 
       {/* ── STICKY TOOLBAR ───────────────────────────────────────────── */}
-      <div className="sticky top-0 z-40 border-b border-white/10 bg-[#080808]/85 backdrop-blur-xl">
-        <div className="mx-auto max-w-[1560px] px-5 sm:px-8 lg:px-14">
-          <div className="flex items-center justify-between gap-4 py-4">
+      <div className="sticky top-[60px] sm:top-[68px] md:top-[76px] z-30 border-b border-white/10 bg-[#080808]/90 backdrop-blur-xl">
+        <div className="mx-auto max-w-[1560px] px-4 sm:px-8 lg:px-14">
+          {/* Desktop single row (sm: and above) */}
+          <div className="hidden sm:flex items-center justify-between gap-4 py-4">
             {/* Category chips */}
             <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {categories.map((cat) => {
@@ -254,6 +259,99 @@ export const Shop = () => {
                   </motion.ul>
                 )}
               </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Mobile responsive stacked layout (< sm) */}
+          <div className="sm:hidden flex flex-col py-2.5 gap-2.5 w-full">
+            {/* Category chips track with edge fade */}
+            <div className="relative -mx-4 px-4">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {categories.map((cat) => {
+                  const active = selectedCategory === cat.value;
+                  const count = counts[cat.value] ?? 0;
+                  return (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => setSelectedCategory(cat.value)}
+                      aria-pressed={active}
+                      className={`group relative shrink-0 rounded-full border px-3.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors duration-200 ${
+                        active
+                          ? 'border-crown-gold bg-crown-gold text-black font-semibold'
+                          : 'border-white/15 text-white/60 hover:border-white/35 hover:text-white bg-white/[0.03]'
+                      }`}
+                    >
+                      {cat.label}
+                      <span className={`ml-1.5 tabular-nums ${active ? 'text-black/70 font-bold' : 'text-white/35'}`}>
+                        {String(count).padStart(2, '0')}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="pointer-events-none absolute right-0 inset-y-0 w-8 bg-gradient-to-l from-[#080808] to-transparent" />
+            </div>
+
+            {/* Sub-bar: product count + sort dropdown */}
+            <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px]">
+              <span className="text-white/40 uppercase tracking-[0.2em] text-[9.5px]">
+                {filtered.length} {filtered.length === 1 ? 'Product' : 'Products'}
+              </span>
+
+              <div ref={sortRefMobile} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setSortOpen((o) => !o)}
+                  aria-haspopup="listbox"
+                  aria-expanded={sortOpen}
+                  className="flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-white/80 active:scale-95 transition-colors"
+                >
+                  <Sliders className="h-3 w-3 text-crown-gold" />
+                  <span className="text-white font-semibold">{activeSort.label}</span>
+                  <Chevron
+                    className={`h-3 w-3 transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {sortOpen && (
+                    <motion.ul
+                      role="listbox"
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                      transition={{ duration: 0.18, ease: EASE_OUT }}
+                      className="absolute right-0 top-[calc(100%+8px)] z-50 w-[240px] origin-top-right overflow-hidden rounded-lg border border-white/12 bg-[#0E0E0E]/95 p-1.5 shadow-2xl shadow-black/80 backdrop-blur-xl"
+                    >
+                      {sortOptions.map((opt) => {
+                        const active = opt.value === sort;
+                        return (
+                          <li key={opt.value}>
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={active}
+                              onClick={() => {
+                                setSort(opt.value);
+                                setSortOpen(false);
+                              }}
+                              className={`flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-[10px] uppercase tracking-[0.2em] transition-colors duration-150 ${
+                                active
+                                  ? 'bg-crown-gold/10 text-crown-gold font-semibold'
+                                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                              }`}
+                            >
+                              {opt.label}
+                              {active && <Check className="h-3 w-3" />}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>

@@ -40,12 +40,16 @@ export const Cart = () => {
           {/* Items */}
           <div className="space-y-3">
             {items.map((item, idx) => {
-              const defaultImg = (item.product.images?.find(i => i.isMain) || item.product.images?.[0])?.url || 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format';
+              const defaultImg = (item.product.images?.find(i => i.isMain) || item.product.images?.[0])?.url || '';
               const imgUrl = item.selectedImage || defaultImg;
               return (
                 <div key={`${item.product.id}_${item.selectedColor || idx}`} className="flex gap-4 border border-white/8 bg-[#111111] p-4">
-                  <Link to={`/product/${item.product.slug}`} className="w-20 h-24 sm:w-24 sm:h-28 bg-[#1A1A1A] flex-shrink-0 overflow-hidden border border-white/10">
-                    <img src={imgUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                  <Link to={`/product/${item.product.slug}`} className="w-20 h-24 sm:w-24 sm:h-28 bg-[#1A1A1A] flex-shrink-0 overflow-hidden border border-white/10 flex items-center justify-center">
+                    {imgUrl ? (
+                      <img src={imgUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-white/20 uppercase tracking-widest">No image</span>
+                    )}
                   </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between gap-2">

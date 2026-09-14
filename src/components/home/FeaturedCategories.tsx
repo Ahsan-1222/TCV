@@ -7,8 +7,6 @@ import { ScrollReveal } from '../ui/ScrollReveal';
 import { ScrollParallax } from '../ui/ScrollParallax';
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
-const FALLBACK_IMG =
-  'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1200&auto=format';
 
 export const FeaturedCategories = () => {
   const cats = useCategoryBanners();
@@ -20,24 +18,24 @@ export const FeaturedCategories = () => {
   const current = cats[safeActive];
 
   return (
-    <section className="relative overflow-hidden bg-[#0A0A0A] py-20 md:py-28">
-      <div className="mx-auto max-w-[1560px] px-5 sm:px-8 lg:px-14">
+    <section className="relative overflow-hidden bg-[#0A0A0A] py-14 sm:py-20 md:py-28">
+      <div className="mx-auto max-w-[1560px] px-4 sm:px-8 lg:px-14">
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <ScrollReveal direction="up" distance={25} duration={0.8}>
-          <div className="mb-12 flex flex-wrap items-end justify-between gap-6 md:mb-16">
+          <div className="mb-8 sm:mb-12 flex items-end justify-between gap-6 md:mb-16">
             <div>
-              <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.42em] text-crown-gold flex items-center gap-3">
+              <div className="mb-2 sm:mb-3 text-[10px] font-semibold uppercase tracking-[0.42em] text-crown-gold flex items-center gap-3">
                 <span className="h-px w-6 bg-crown-gold/60 inline-block" />
                 Categories
               </div>
-              <h2 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-normal leading-[1] tracking-[-0.02em] text-white">
+              <h2 className="font-display text-[clamp(1.75rem,5vw,3.5rem)] font-normal leading-[1] tracking-[-0.02em] text-white">
                 Shop by category
               </h2>
             </div>
             <Link
               to="/shop"
-              className="group hidden items-center gap-2 text-[10px] font-medium uppercase tracking-[0.3em] text-white/45 transition-colors hover:text-crown-gold sm:flex"
+              className="group flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.3em] text-white/45 transition-colors hover:text-crown-gold"
             >
               View all
               <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -45,7 +43,7 @@ export const FeaturedCategories = () => {
           </div>
         </ScrollReveal>
 
-        {/* ── DESKTOP: hover-index + preview ─────────────────────── */}
+        {/* ── DESKTOP (lg:): hover-index + live preview ─────────────────────── */}
         <div className="hidden gap-12 lg:grid lg:grid-cols-[1fr_1.05fr] lg:gap-16">
           {/* Index list */}
           <ScrollReveal direction="up" distance={30} duration={0.85} className="flex flex-col">
@@ -58,7 +56,7 @@ export const FeaturedCategories = () => {
                     to={`/categories/${c.slug}`}
                     onMouseEnter={() => setActive(i)}
                     onFocus={() => setActive(i)}
-                    className="group flex items-center justify-between gap-8 py-8 transition-colors duration-300"
+                    className="group flex items-center justify-between gap-8 py-7 xl:py-8 transition-colors duration-300"
                   >
                     <div className="flex items-baseline gap-6">
                       <span
@@ -69,7 +67,7 @@ export const FeaturedCategories = () => {
                         0{i + 1}
                       </span>
                       <h3
-                        className={`font-display text-[clamp(2rem,4vw,3.4rem)] font-normal leading-none tracking-[-0.02em] transition-colors duration-500 ${
+                        className={`font-display text-[clamp(2rem,3.8vw,3.4rem)] font-normal leading-none tracking-[-0.02em] transition-colors duration-500 ${
                           isActive ? 'text-crown-gold' : 'text-white'
                         }`}
                       >
@@ -94,7 +92,7 @@ export const FeaturedCategories = () => {
               })}
             </div>
 
-            {/* Supporting line below */}
+            {/* Supporting description below index */}
             {current && (
               <motion.p
                 key={current.slug}
@@ -110,7 +108,7 @@ export const FeaturedCategories = () => {
 
           {/* Preview image */}
           <ScrollReveal direction="up" distance={30} duration={0.9} delay={0.12} className="relative">
-            <ScrollParallax speed={0.06} offset={16} className="h-[560px] xl:h-[640px] rounded-sm border border-white/10 shadow-2xl bg-[#111]">
+            <ScrollParallax speed={0.06} offset={16} className="h-[520px] xl:h-[640px] rounded-sm border border-white/10 shadow-2xl bg-[#111]">
               <AnimatePresence mode="wait">
                 {current && (
                   <motion.div
@@ -124,9 +122,6 @@ export const FeaturedCategories = () => {
                     <img
                       src={current.image}
                       alt={current.title}
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = FALLBACK_IMG;
-                      }}
                       className="h-full w-full object-cover"
                     />
                   </motion.div>
@@ -134,7 +129,7 @@ export const FeaturedCategories = () => {
               </AnimatePresence>
 
               {/* Scrims */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="pointer-events-none absolute inset-0 border border-crown-gold/20" />
 
               {/* Overlay label */}
@@ -143,7 +138,7 @@ export const FeaturedCategories = () => {
                   <div>
                     <div
                       className="text-[10px] font-semibold uppercase tracking-[0.42em]"
-                      style={{ color: current.accent }}
+                      style={{ color: current.accent || '#C9A86A' }}
                     >
                       {current.label}
                     </div>
@@ -160,56 +155,54 @@ export const FeaturedCategories = () => {
           </ScrollReveal>
         </div>
 
-        {/* ── MOBILE / TABLET: stacked cards ─────────────────────── */}
-        <ScrollReveal direction="up" distance={25} duration={0.7} stagger={0.08} className="space-y-4 lg:hidden">
-          {cats.map((c, i) => (
-            <div key={c.slug} className="block">
+        {/* ── MOBILE / TABLET (< lg): Responsive Grid ─────────────────────── */}
+        <ScrollReveal direction="up" distance={25} duration={0.7} stagger={0.08} className="lg:hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            {cats.map((c, i) => (
               <Link
+                key={c.slug}
                 to={`/categories/${c.slug}`}
-                className="group block overflow-hidden border border-white/10 bg-[#0E0E0E] transition-colors duration-500 hover:border-crown-gold/30"
+                className="group block overflow-hidden rounded-sm border border-white/10 bg-[#0E0E0E] transition-all duration-500 hover:border-crown-gold/40 shadow-lg"
               >
-                <div className="relative aspect-[16/10] overflow-hidden">
+                <div className="relative aspect-[16/11] sm:aspect-[4/3] overflow-hidden bg-[#161616]">
                   <img
                     src={c.image}
                     alt={c.title}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = FALLBACK_IMG;
-                    }}
-                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
 
-                  <div className="absolute inset-x-0 bottom-0 p-5">
+                  <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
                     <div
-                      className="text-[9px] font-semibold uppercase tracking-[0.4em]"
-                      style={{ color: c.accent }}
+                      className="text-[9px] font-semibold uppercase tracking-[0.38em]"
+                      style={{ color: c.accent || '#C9A86A' }}
                     >
                       {c.label}
                     </div>
-                    <h3 className="mt-1.5 font-display text-[26px] leading-none text-white">
+                    <h3 className="mt-1 font-display text-[22px] sm:text-[26px] leading-none text-white">
                       {c.title}
                     </h3>
                   </div>
 
-                  <span className="absolute right-4 top-4 border border-white/20 bg-black/50 px-2.5 py-1 text-[9px] tabular-nums tracking-[0.24em] text-white/70 backdrop-blur-md">
+                  <span className="absolute right-3 top-3 border border-white/20 bg-black/60 px-2 py-0.5 text-[9px] tabular-nums tracking-[0.2em] text-white/80 backdrop-blur-md">
                     0{i + 1}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between gap-4 p-5">
-                  <span className="text-[10px] uppercase tracking-[0.3em] text-white/35">
+                <div className="flex items-center justify-between gap-4 p-4 sm:p-5 border-t border-white/5 bg-[#0A0A0A]">
+                  <span className="text-[10px] uppercase tracking-[0.25em] text-white/40">
                     {c.count} {c.unit}
                   </span>
-                  <ArrowUpRight className="h-4 w-4 text-white/40 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-crown-gold" />
+                  <ArrowUpRight className="h-4 w-4 text-white/50 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-crown-gold" />
                 </div>
               </Link>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <div className="pt-3 text-center">
+          <div className="mt-8 text-center sm:hidden">
             <Link
               to="/shop"
-              className="inline-flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.3em] text-white/45 transition-colors hover:text-crown-gold"
+              className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.04] px-6 py-3 text-[10px] font-medium uppercase tracking-[0.25em] text-white/80 transition-colors hover:border-crown-gold hover:text-crown-gold"
             >
               View all collections
               <ArrowUpRight className="h-3.5 w-3.5" />

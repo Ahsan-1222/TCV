@@ -23,7 +23,7 @@ const FALLBACK_SLIDE: Slide = {
   heading: 'Curated Elegance',
   description: 'Experience refined luxury and unmatched craftsmanship across our collections.',
   cta: 'Explore Collection',
-  image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1600&auto=format',
+  image: '/assets/banners/hero-perfumes.jpg',
   link: '/shop',
 };
 
@@ -218,13 +218,189 @@ export const Hero = () => {
   const words = (slide.heading ?? '').split(' ').filter(Boolean);
   const total = String(slides.length).padStart(2, '0');
 
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    touchEndX.current = null;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+  const onTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) go(1);
+      else go(-1);
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
   return (
     <section
       aria-roledescription="carousel"
       aria-label="Featured collections"
       className="relative isolate w-full select-none overflow-hidden bg-black text-white antialiased"
     >
-      <div className="relative h-[88svh] min-h-[560px] w-full md:h-[92vh] md:min-h-[660px] md:max-h-[1000px]">
+      {/* ═════════════════════════════════════════════════════════════════════
+          MOBILE LAYOUT (< md):
+          Full banner image visibility with 16:9 ratio, zero cropping,
+          touch swipe, and refined editorial typography below
+         ═════════════════════════════════════════════════════════════════════ */}
+      <div
+        className="block md:hidden w-full bg-black"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Full uncropped banner image */}
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-b from-[#161616] to-[#0A0A0A] flex items-center justify-center border-b border-white/10">
+          {/* Ambient ambient glow from the current banner */}
+          {slide.image && (
+            <img
+              src={slide.image}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover blur-2xl opacity-25 scale-125"
+            />
+          )}
+
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={index}
+              custom={direction}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.4, ease: EASE_OUT }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <img
+                src={slide.image}
+                alt={slide.heading ?? 'Banner'}
+                draggable={false}
+                fetchPriority={index === 0 ? 'high' : 'auto'}
+                className="pointer-events-none h-full w-full object-contain object-center"
+              />
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Vignette shadow at bottom */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/80 to-transparent" />
+
+          {/* Slide counter badge */}
+          <span className="absolute top-3 right-3 border border-white/20 bg-black/60 px-2.5 py-1 text-[9px] tabular-nums tracking-[0.2em] text-white/80 backdrop-blur-md">
+            {String(index + 1).padStart(2, '0')} / {total}
+          </span>
+        </div>
+
+        {/* Text & Actions area below the banner */}
+        <div className="px-5 pt-5 pb-5 sm:px-8 bg-black">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35, ease: EASE_OUT }}
+            >
+              {/* Kicker */}
+              <div className="mb-2 flex items-center gap-3">
+                <span className="h-px w-6 bg-crown-gold/70 inline-block" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-crown-gold">
+                  {slide.subtitle}
+                </span>
+              </div>
+
+              {/* Heading */}
+              <h1 className="font-display text-[26px] sm:text-[34px] font-normal leading-[1.08] tracking-[-0.01em] text-white">
+                {slide.heading}
+              </h1>
+
+              {/* Description */}
+              {slide.description && (
+                <p className="mt-2 text-[12.5px] sm:text-[13.5px] font-light leading-relaxed text-white/70">
+                  {slide.description}
+                </p>
+              )}
+
+              {/* Action row with CTA & Controls */}
+              <div className="mt-5 flex items-center justify-between gap-4">
+                <Link
+                  to={resolveTarget(slide)}
+                  className="inline-flex items-center gap-2.5 bg-crown-gold text-black px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.25em] shadow-[0_4px_14px_rgba(201,168,106,0.25)] hover:bg-crown-gold-dark transition-colors"
+                >
+                  {slide.cta || 'Explore'}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+
+                {/* Arrow navigation + Play/Pause */}
+                <div className="flex items-center gap-2">
+                  {canAutoplay && (
+                    <button
+                      type="button"
+                      onClick={() => setPaused((p) => !p)}
+                      aria-label={paused ? 'Play' : 'Pause'}
+                      className="grid h-9 w-9 place-items-center rounded-full border border-white/20 text-white/70 active:scale-95 transition-colors"
+                    >
+                      {paused ? <PlayIcon className="h-2.5 w-2.5" /> : <PauseIcon className="h-2.5 w-2.5" />}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => go(-1)}
+                    disabled={slides.length <= 1}
+                    aria-label="Previous slide"
+                    className="grid h-9 w-9 place-items-center rounded-full border border-white/20 text-white/80 active:scale-95 disabled:opacity-30 transition-colors"
+                  >
+                    <ArrowRight className="h-3.5 w-3.5 rotate-180" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => go(1)}
+                    disabled={slides.length <= 1}
+                    aria-label="Next slide"
+                    className="grid h-9 w-9 place-items-center rounded-full border border-white/20 text-white/80 active:scale-95 disabled:opacity-30 transition-colors"
+                  >
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Dot Indicators */}
+              <div className="mt-4 flex items-center gap-2">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => jumpTo(i)}
+                    aria-label={`Slide ${i + 1}`}
+                    className={`h-1 transition-all duration-300 ${
+                      i === index ? 'w-7 bg-crown-gold' : 'w-2 bg-white/25 rounded-full'
+                    }`}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-[2px] w-full bg-white/10">
+          {canAutoplay && (
+            <motion.div style={{ scaleX: progress }} className="h-full w-full origin-left bg-crown-gold" />
+          )}
+        </div>
+      </div>
+
+      {/* ═════════════════════════════════════════════════════════════════════
+          DESKTOP LAYOUT (md: and above):
+          Full-height immersive editorial presentation with masked reveal
+         ═════════════════════════════════════════════════════════════════════ */}
+      <div className="hidden md:block relative h-[90vh] min-h-[660px] max-h-[1000px] w-full">
         {/* ── MEDIA (swipeable) ─────────────────────────────────────── */}
         <motion.div
           className="absolute inset-0 z-0 cursor-grab active:cursor-grabbing"
@@ -257,13 +433,13 @@ export const Hero = () => {
 
         {/* ── SCRIMS ───────────────────────────────────────────────── */}
         <div className="pointer-events-none absolute inset-0 z-10">
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/15 md:bg-gradient-to-r md:from-black md:via-black/55 md:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
           <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/70 via-black/25 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/85 to-transparent" />
         </div>
 
         {/* ── CONTENT ──────────────────────────────────────────────── */}
-        <div className="pointer-events-none relative z-20 mx-auto flex h-full w-full max-w-[1500px] flex-col justify-end px-6 pb-32 pt-32 sm:px-10 md:justify-center md:pb-32 lg:px-16">
+        <div className="pointer-events-none relative z-20 mx-auto flex h-full w-full max-w-[1500px] flex-col justify-center px-6 pb-32 pt-32 sm:px-10 lg:px-16">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={index}
@@ -287,7 +463,7 @@ export const Hero = () => {
               {/* Heading — masked word-by-word reveal */}
               <motion.h1
                 variants={headingVariants}
-                className="font-display text-[clamp(2.1rem,8.6vw,4rem)] font-semibold leading-[0.98] tracking-[-0.02em] text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.55)] md:text-[clamp(3.5rem,6.4vw,7rem)]"
+                className="font-display text-[clamp(2.5rem,5.5vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.02em] text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.55)]"
               >
                 {words.map((word, i) => (
                   <span key={`${word}-${i}`} className="mr-[0.22em] inline-block overflow-hidden pb-[0.08em] align-bottom">
@@ -301,7 +477,7 @@ export const Hero = () => {
               {/* Description */}
               <motion.p
                 variants={itemVariants}
-                className="mt-6 max-w-[46ch] text-[13.5px] font-light leading-relaxed text-white/75 md:mt-7 md:text-[15px] md:leading-[1.85]"
+                className="mt-6 max-w-[46ch] text-[14px] font-light leading-relaxed text-white/75 md:mt-7 md:text-[15px] md:leading-[1.85]"
               >
                 {slide.description}
               </motion.p>
@@ -326,7 +502,7 @@ export const Hero = () => {
 
         {/* ── CONTROLS ─────────────────────────────────────────────── */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30">
-          <div className="mx-auto flex w-full max-w-[1500px] items-center justify-between gap-6 px-6 pb-5 sm:px-10 lg:px-16">
+          <div className="mx-auto flex w-full max-w-[1500px] items-center justify-between gap-6 px-6 pb-6 sm:px-10 lg:px-16">
             {/* Counter + dots */}
             <div className="pointer-events-auto flex items-center gap-5">
               <div className="flex items-baseline gap-3 tabular-nums">

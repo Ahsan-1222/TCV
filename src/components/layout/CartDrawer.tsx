@@ -65,16 +65,20 @@ export const CartDrawer = () => {
                 </div>
               ) : (
                 items.map((item, idx) => {
-                  const defaultImg = (item.product.images?.find(i => i.isMain) || item.product.images?.[0])?.url || 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format';
+                  const defaultImg = (item.product.images?.find(i => i.isMain) || item.product.images?.[0])?.url || '';
                   const imgUrl = item.selectedImage || defaultImg;
                   return (
                     <div key={`${item.product.id}_${item.selectedColor || idx}`} className="flex gap-4 group">
                       <Link
                         to={`/product/${item.product.slug}`}
                         onClick={() => setIsOpen(false)}
-                        className="w-[76px] h-[90px] bg-[#1A1A1A] flex-shrink-0 overflow-hidden border border-white/10"
+                        className="w-[76px] h-[90px] bg-[#1A1A1A] flex-shrink-0 overflow-hidden border border-white/10 flex items-center justify-center"
                       >
-                        <img src={imgUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                        {imgUrl ? (
+                          <img src={imgUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[9px] text-white/20 uppercase tracking-widest">No image</span>
+                        )}
                       </Link>
                       <div className="flex-1 min-w-0">
                         <Link

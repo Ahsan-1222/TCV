@@ -129,7 +129,11 @@ export const AdminDashboard = () => {
               const mainImage = p.images?.find((img: any) => img.isMain) || p.images?.[0];
               return (
                 <div key={p.id} className="flex items-center gap-3">
-                  <img src={mainImage?.url || 'https://via.placeholder.com/60'} className="w-9 h-11 object-cover bg-[#F8F6F3] border border-gray-100 shrink-0" />
+                  {mainImage?.url ? (
+                    <img src={mainImage.url} alt={p.name} className="w-9 h-11 object-cover bg-[#F8F6F3] border border-gray-100 shrink-0" />
+                  ) : (
+                    <div className="w-9 h-11 bg-gray-100 border border-gray-200 shrink-0" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="text-[12px] font-medium uppercase truncate text-[#1A1A1A]">{p.name}</div>
                     <div className="text-[11px] text-gray-500">{p.category} · Stock: {p.stock}</div>

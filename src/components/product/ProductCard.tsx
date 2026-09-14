@@ -13,11 +13,7 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
   const inWishlist = isInWishlist(product.id);
-  const mainImage = product.images?.find(i => i.isMain) || product.images?.[0] || {
-    url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format',
-    alt: product.name,
-    isMain: true
-  };
+  const mainImage = product.images?.find(i => i.isMain) || product.images?.[0];
   const isOutOfStock = typeof product.stock === 'number' && product.stock <= 0;
   const discount = product.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
@@ -29,14 +25,11 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
 
-    const rotateX = (-y / rect.height) * 10;
-    const rotateY = (x / rect.width) * 10;
-
     gsap.to(cardRef.current, {
-      rotateX,
-      rotateY,
+      rotateY: x * 0.04,
+      rotateX: -y * 0.04,
       transformPerspective: 1000,
-      duration: 0.35,
+      duration: 0.5,
       ease: 'power2.out',
     });
   };
@@ -44,9 +37,9 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
   const handleMouseLeave = () => {
     if (!cardRef.current) return;
     gsap.to(cardRef.current, {
-      rotateX: 0,
       rotateY: 0,
-      duration: 0.5,
+      rotateX: 0,
+      duration: 0.7,
       ease: 'power2.out',
     });
   };
@@ -66,21 +59,20 @@ export const ProductCard = ({ product, index = 0 }: { product: Product; index?: 
       {/* Image */}
       <div className="relative aspect-[4/5] overflow-hidden bg-[#161616] rounded-sm flex items-center justify-center">
         <Link to={`/product/${product.slug}`} className="absolute inset-0 z-0">
-          <img
-            src={mainImage.url}
-            alt={mainImage.alt}
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.dataset.failed) {
-                target.dataset.failed = 'true';
-                target.src = 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format';
-              }
-            }}
-            className={`w-full h-full object-cover max-w-full transition-transform duration-[2s] ease-out group-hover:scale-105 ${
-              mainImage.position === 'left' ? 'object-left' : mainImage.position === 'right' ? 'object-right' : 'object-center'
-            }`}
-            loading="lazy"
-          />
+          {mainImage?.url ? (
+            <img
+              src={mainImage.url}
+              alt={mainImage.alt || product.name}
+              className={`w-full h-full object-cover max-w-full transition-transform duration-[2s] ease-out group-hover:scale-105 ${
+                mainImage.position === 'left' ? 'object-left' : mainImage.position === 'right' ? 'object-right' : 'object-center'
+              }`}
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/20 text-xs tracking-widest uppercase">
+              No Image
+            </div>
+          )}
           {/* Dark overlay on hover */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-700" />
         </Link>

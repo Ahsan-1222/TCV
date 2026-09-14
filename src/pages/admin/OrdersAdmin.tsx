@@ -155,11 +155,15 @@ export const OrdersAdmin = () => {
                       const mainImage = item.selectedImage || item.product?.images?.find((img: any) => img.isMain)?.url || item.product?.images?.[0]?.url;
                       return (
                         <div key={i} className="flex gap-4">
-                          <img 
-                            src={mainImage || 'https://via.placeholder.com/150'} 
-                            alt={item.product?.name} 
-                            className="w-16 h-20 object-cover bg-gray-100 border border-gray-200 rounded-sm"
-                          />
+                          {mainImage ? (
+                            <img 
+                              src={mainImage} 
+                              alt={item.product?.name} 
+                              className="w-16 h-20 object-cover bg-gray-100 border border-gray-200 rounded-sm"
+                            />
+                          ) : (
+                            <div className="w-16 h-20 bg-gray-100 border border-gray-200 rounded-sm flex items-center justify-center text-[10px] text-gray-400">No Image</div>
+                          )}
                           <div className="flex-1">
                             <div className="text-[13px] font-medium uppercase text-[#1A1A1A]">{item.product?.name}</div>
                             {item.selectedColor && (

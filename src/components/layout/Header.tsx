@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { AnnouncementBar } from './AnnouncementBar';
@@ -42,7 +43,7 @@ export const Header = () => {
   return (
     <>
       <AnnouncementBar />
-      <header className="sticky top-0 z-40 bg-[#0A0A0A] border-b border-white/10 shadow-lg shadow-black/30 w-full">
+      <header className="sticky top-0 z-50 bg-[#0A0A0A] border-b border-white/10 shadow-lg shadow-black/30 w-full">
         <div className="max-w-[1600px] mx-auto px-3 sm:px-6 md:px-8 lg:px-12">
           <div className="flex items-center justify-between h-[60px] sm:h-[68px] md:h-[76px]">
 
@@ -151,98 +152,102 @@ export const Header = () => {
         </div>
 
         {/* Mobile Full-Screen Menu */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: '-100%' }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.3 }}
-              className="lg:hidden fixed inset-0 top-0 bg-[#0A0A0A] z-[80] flex flex-col h-full overflow-y-auto"
-            >
-              {/* Close button header */}
-              <div className="flex items-center justify-between px-4 sm:px-6 h-[60px] sm:h-[64px] border-b border-white/10 flex-shrink-0 sticky top-0 bg-[#0A0A0A] z-10">
-                <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5">
-                  <img src="/logo.jpg" alt="TCV" className="w-9 h-9 sm:w-10 sm:h-10 object-contain [filter:brightness(0)_saturate(100%)_invert(75%)_sepia(34%)_saturate(660%)_hue-rotate(357deg)_brightness(92%)_contrast(85%)]" />
-                  <div className="flex flex-col">
-                    <span className="font-display text-[13px] sm:text-[15px] tracking-[0.1em] text-white font-semibold leading-none">THE CROWN VAULT</span>
-                    <span className="text-[6px] tracking-[0.3em] uppercase text-crown-gold mt-0.5">Luxury Curations</span>
-                  </div>
-                </Link>
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  className="p-2 text-white/80 hover:text-white transition-colors"
-                  aria-label="Close menu"
+        {typeof document !== 'undefined' &&
+          createPortal(
+            <AnimatePresence>
+              {mobileOpen && (
+                <motion.div
+                  initial={{ opacity: 0, x: '-100%' }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: '-100%' }}
+                  transition={{ type: 'tween', duration: 0.3 }}
+                  className="lg:hidden fixed inset-0 bg-[#0A0A0A] z-[999] flex flex-col h-full overflow-y-auto"
                 >
-                  <X size={24} strokeWidth={1.5} />
-                </button>
-              </div>
-
-              {/* Nav links */}
-              <nav className="flex-1 py-3 px-5 sm:px-8 flex flex-col overflow-y-auto">
-                {navLinks.map((link, i) => (
-                  <motion.div
-                    key={link.to}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                  >
-                    <Link
-                      to={link.to}
-                      onClick={() => setMobileOpen(false)}
-                      className="group flex items-center justify-between py-3.5 border-b border-white/8 hover:border-crown-gold/40 transition-colors"
-                    >
-                      <span className="font-display text-[16px] sm:text-[18px] tracking-[0.08em] uppercase text-white/90 font-medium group-hover:text-crown-gold transition-colors duration-200">
-                        {link.label}
-                      </span>
-                      <span className="text-[11px] text-white/30 group-hover:text-crown-gold transition-colors">
-                        →
-                      </span>
+                  {/* Close button header */}
+                  <div className="flex items-center justify-between px-4 sm:px-6 h-[60px] sm:h-[64px] border-b border-white/10 flex-shrink-0 sticky top-0 bg-[#0A0A0A] z-10">
+                    <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5">
+                      <img src="/logo.jpg" alt="TCV" className="w-9 h-9 sm:w-10 sm:h-10 object-contain [filter:brightness(0)_saturate(100%)_invert(75%)_sepia(34%)_saturate(660%)_hue-rotate(357deg)_brightness(92%)_contrast(85%)]" />
+                      <div className="flex flex-col">
+                        <span className="font-display text-[13px] sm:text-[15px] tracking-[0.1em] text-white font-semibold leading-none">THE CROWN VAULT</span>
+                        <span className="text-[6px] tracking-[0.3em] uppercase text-crown-gold mt-0.5">Luxury Curations</span>
+                      </div>
                     </Link>
-                  </motion.div>
-                ))}
-
-                {/* Social Media Links */}
-                <div className="mt-6 pt-2">
-                  <div className="grid grid-cols-2 border border-white/10 rounded-sm divide-x divide-white/10 bg-[#0E0E0E]">
-                    <a
-                      href="https://www.instagram.com/tcv1213?igsi=MXJiNm5hYmp0cjdpdQ%3D%3D&utm_source=qr"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-12 flex items-center justify-center gap-2 text-white/80 hover:text-crown-gold hover:bg-white/5 transition-colors"
-                      aria-label="Instagram"
+                    <button
+                      onClick={() => setMobileOpen(false)}
+                      className="p-2 text-white/80 hover:text-white transition-colors"
+                      aria-label="Close menu"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                      </svg>
-                      <span className="text-[10px] tracking-widest uppercase font-medium">Instagram</span>
-                    </a>
-                    <a
-                      href="https://www.tiktok.com/@tcv12131?_r=1&_t=ZS-99IJ9IBPM1M"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-12 flex items-center justify-center gap-2 text-white/80 hover:text-crown-gold hover:bg-white/5 transition-colors"
-                      aria-label="TikTok"
-                    >
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.86.12V9.35a6.32 6.32 0 0 0-.86-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 10.83 4.47 6.3 6.3 0 0 0 1.87-4.47V8.62a8.23 8.23 0 0 0 4.75 1.5V6.69z"/>
-                      </svg>
-                      <span className="text-[10px] tracking-widest uppercase font-medium">TikTok</span>
-                    </a>
+                      <X size={24} strokeWidth={1.5} />
+                    </button>
                   </div>
-                </div>
-              </nav>
 
-              {/* Bottom info */}
-              <div className="px-5 sm:px-8 py-5 flex-shrink-0 space-y-1 border-t border-white/10 bg-[#070707]">
-                <p className="text-[11px] tracking-[0.15em] uppercase text-white/90 font-mono">WhatsApp: +92 321 7244813</p>
-                <p className="text-[10px] tracking-[0.2em] uppercase text-white/60">COD · Nationwide Delivery</p>
-              </div>
-            </motion.div>
+                  {/* Nav links */}
+                  <nav className="flex-1 py-3 px-5 sm:px-8 flex flex-col overflow-y-auto">
+                    {navLinks.map((link, i) => (
+                      <motion.div
+                        key={link.to}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.03 }}
+                      >
+                        <Link
+                          to={link.to}
+                          onClick={() => setMobileOpen(false)}
+                          className="group flex items-center justify-between py-3.5 border-b border-white/8 hover:border-crown-gold/40 transition-colors"
+                        >
+                          <span className="font-display text-[16px] sm:text-[18px] tracking-[0.08em] uppercase text-white/90 font-medium group-hover:text-crown-gold transition-colors duration-200">
+                            {link.label}
+                          </span>
+                          <span className="text-[11px] text-white/30 group-hover:text-crown-gold transition-colors">
+                            →
+                          </span>
+                        </Link>
+                      </motion.div>
+                    ))}
+
+                    {/* Social Media Links */}
+                    <div className="mt-6 pt-2">
+                      <div className="grid grid-cols-2 border border-white/10 rounded-sm divide-x divide-white/10 bg-[#0E0E0E]">
+                        <a
+                          href="https://www.instagram.com/tcv1213?igsi=MXJiNm5hYmp0cjdpdQ%3D%3D&utm_source=qr"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="h-12 flex items-center justify-center gap-2 text-white/80 hover:text-crown-gold hover:bg-white/5 transition-colors"
+                          aria-label="Instagram"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                          </svg>
+                          <span className="text-[10px] tracking-widest uppercase font-medium">Instagram</span>
+                        </a>
+                        <a
+                          href="https://www.tiktok.com/@tcv12131?_r=1&_t=ZS-99IJ9IBPM1M"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="h-12 flex items-center justify-center gap-2 text-white/80 hover:text-crown-gold hover:bg-white/5 transition-colors"
+                          aria-label="TikTok"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.86.12V9.35a6.32 6.32 0 0 0-.86-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 0 0 0 10.83 4.47 6.3 6.3 0 0 0 1.87-4.47V8.62a8.23 8.23 0 0 0 4.75 1.5V6.69z"/>
+                          </svg>
+                          <span className="text-[10px] tracking-widest uppercase font-medium">TikTok</span>
+                        </a>
+                      </div>
+                    </div>
+                  </nav>
+
+                  {/* Bottom info */}
+                  <div className="px-5 sm:px-8 py-5 flex-shrink-0 space-y-1 border-t border-white/10 bg-[#070707]">
+                    <p className="text-[11px] tracking-[0.15em] uppercase text-white/90 font-mono">WhatsApp: +92 321 7244813</p>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-white/60">COD · Nationwide Delivery</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
           )}
-        </AnimatePresence>
       </header>
     </>
   );

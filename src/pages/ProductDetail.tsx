@@ -53,7 +53,7 @@ export const ProductDetail = () => {
 
   const productImages = product.images && product.images.length > 0
     ? product.images
-    : [{ url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format', alt: product.name, isMain: true }];
+    : [];
   const mainImg = productImages[activeImage] || productImages[0];
   const selectedColorName = mainImg?.color || mainImg?.alt || (productImages.length > 1 ? `Option ${activeImage + 1}` : undefined);
   const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
@@ -191,13 +191,19 @@ export const ProductDetail = () => {
                     transition={{ duration: 0.6, ease: EASE_OUT }}
                     className="group relative aspect-[4/5] w-full overflow-hidden border border-white/10 bg-[#0E0E0E]"
                   >
-                    <img
-                      src={mainImg.url}
-                      alt={mainImg.alt}
-                      className={`h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03] ${
-                        mainImg?.position === 'left' ? 'object-left' : mainImg?.position === 'right' ? 'object-right' : 'object-center'
-                      }`}
-                    />
+                    {mainImg?.url ? (
+                      <img
+                        src={mainImg.url}
+                        alt={mainImg.alt || product.name}
+                        className={`h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03] ${
+                          mainImg?.position === 'left' ? 'object-left' : mainImg?.position === 'right' ? 'object-right' : 'object-center'
+                        }`}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/20 text-xs tracking-widest uppercase">
+                        No Image
+                      </div>
+                    )}
 
                     {/* Discount tag */}
                     {discount > 0 && (
