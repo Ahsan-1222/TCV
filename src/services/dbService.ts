@@ -1,5 +1,5 @@
 import { db, storage, collections } from '../lib/firebase';
-import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { products as initialProducts } from '../data/products';
 import type { Product } from '../types';
@@ -77,6 +77,16 @@ export const DEFAULT_BANNERS: BannerSlide[] = [
 ];
 
 const DELETED_PRODUCTS_KEY = 'tcv_deleted_product_ids_v1';
+// Bump this key whenever you want to force-clear stale localStorage caches
+const PRODUCTS_CACHE_KEY = 'tcv_products_v3';
+const LEGACY_CACHE_KEYS = ['tcv_products_v2', 'tcv_admin_products', 'tcv_products_v1'];
+
+/** Clear old stale cache keys so they never pollute fresh Firestore data */
+const purgeLegacyCaches = () => {
+  try {
+    LEGACY_CACHE_KEYS.forEach(k => localStorage.removeItem(k));
+  } catch {}
+};
 
 export const getDeletedProductIds = (): string[] => {
   try {
@@ -103,24 +113,33 @@ export const markProductAsDeleted = async (productId: string) => {
   }
 };
 
-// Helper to seed initial products to Firestore if empty
+/**
+ * Seed initial products to Firestore ONLY on first-ever app launch.
+ * Uses a Firestore flag document to ensure seeding happens exactly once,
+ * preventing dummy/hardcoded images from overwriting admin-uploaded images.
+ */
 const seedProductsIfEmpty = async () => {
   try {
+    // Check if we already seeded — never overwrite real admin data
+    const seedFlag = await getDoc(doc(db, 'metadata', 'seed_done'));
+    if (seedFlag.exists()) {
+      console.log('Firestore already seeded, skipping initial seed.');
+      return;
+    }
+
     const deletedIds = getDeletedProductIds();
-    let prodsToSeed = initialProducts.filter(p => !deletedIds.includes(p.id));
-    try {
-      const cached = localStorage.getItem('tcv_products_v2');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          prodsToSeed = parsed.filter(p => !deletedIds.includes(p.id));
-        }
-      }
-    } catch {}
+    const prodsToSeed = initialProducts.filter(p => !deletedIds.includes(p.id));
 
     for (const prod of prodsToSeed) {
       await setDoc(doc(db, collections.products, prod.id), prod);
     }
+
+    // Mark as seeded so this never runs again
+    await setDoc(doc(db, 'metadata', 'seed_done'), {
+      seededAt: new Date().toISOString(),
+      version: 1,
+    });
+    console.log('Initial product seed complete.');
   } catch (err) {
     console.error('Error seeding products to Firestore:', err);
   }
@@ -172,6 +191,9 @@ export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() 
   }
 
   if (!productsUnsubscribe) {
+    // Purge stale caches from old keys so they don't pollute new data
+    purgeLegacyCaches();
+
     let isSeeding = false;
     productsUnsubscribe = onSnapshot(
       collection(db, collections.products),
@@ -180,20 +202,12 @@ export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() 
 
         if (snapshot.empty && !isSeeding) {
           isSeeding = true;
+          // Seed ONLY if Firestore is truly empty (first-ever launch)
+          // The seed function itself checks a Firestore flag to avoid double-seeding
           seedProductsIfEmpty();
-          let fallback = initialProducts.filter(p => !deletedIds.includes(p.id));
-          try {
-            const cached = localStorage.getItem('tcv_products_v2');
-            if (cached) {
-              const parsed = JSON.parse(cached);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                fallback = parsed.filter((p: Product) => !deletedIds.includes(p.id));
-              }
-            }
-          } catch {}
-          fallback = sortProductsBySequence(fallback);
-          lastProductsState = fallback;
-          productSubscribers.forEach(cb => cb(fallback));
+          // Show nothing while seeding — do NOT fall back to hardcoded dummy data
+          lastProductsState = [];
+          productSubscribers.forEach(cb => cb([]));
           return;
         }
 
@@ -208,8 +222,7 @@ export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() 
         const sortedProds = sortProductsBySequence(prods);
 
         try {
-          localStorage.setItem('tcv_products_v2', JSON.stringify(sortedProds));
-          localStorage.setItem('tcv_admin_products', JSON.stringify(sortedProds));
+          localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(sortedProds));
         } catch {}
 
         lastProductsState = sortedProds;
@@ -218,19 +231,24 @@ export const subscribeProducts = (onUpdate: (products: Product[]) => void): (() 
       (error) => {
         console.warn('Firestore products snapshot error, using fallback cache:', error);
         const deletedIds = getDeletedProductIds();
-        let fallback = initialProducts.filter(p => !deletedIds.includes(p.id));
+        // Only use the new cache key — never fall back to hardcoded initialProducts
         try {
-          const cached = localStorage.getItem('tcv_products_v2');
+          const cached = localStorage.getItem(PRODUCTS_CACHE_KEY);
           if (cached) {
             const parsed = JSON.parse(cached);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              fallback = parsed.filter((p: Product) => !deletedIds.includes(p.id));
+              const fallback = sortProductsBySequence(
+                parsed.filter((p: Product) => !deletedIds.includes(p.id))
+              );
+              lastProductsState = fallback;
+              productSubscribers.forEach(cb => cb(fallback));
+              return;
             }
           }
         } catch {}
-        fallback = sortProductsBySequence(fallback);
-        lastProductsState = fallback;
-        productSubscribers.forEach(cb => cb(fallback));
+        // If no cache either, show empty — don't show dummy data
+        lastProductsState = [];
+        productSubscribers.forEach(cb => cb([]));
       }
     );
   }
@@ -256,8 +274,8 @@ export const saveProductSequenceToDB = async (reorderedProducts: Product[]): Pro
   }));
 
   try {
-    localStorage.setItem('tcv_products_v2', JSON.stringify(updatedList));
-    localStorage.setItem('tcv_admin_products', JSON.stringify(updatedList));
+    purgeLegacyCaches();
+    localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(updatedList));
   } catch (err) {
     console.warn('Failed to update local storage product sequence:', err);
   }
@@ -292,14 +310,14 @@ export const saveProductToDB = async (product: Product): Promise<void> => {
   } catch {}
 
   try {
-    const cached = localStorage.getItem('tcv_products_v2');
+    purgeLegacyCaches();
+    const cached = localStorage.getItem(PRODUCTS_CACHE_KEY);
     let list: Product[] = cached ? JSON.parse(cached) : [];
     const idx = list.findIndex(p => p.id === product.id);
     if (idx >= 0) list[idx] = cleanProduct;
     else list.push(cleanProduct);
     list = sortProductsBySequence(list);
-    localStorage.setItem('tcv_products_v2', JSON.stringify(list));
-    localStorage.setItem('tcv_admin_products', JSON.stringify(list));
+    localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(list));
   } catch (err) {
     console.warn('Failed updating LocalStorage for product:', err);
   }
@@ -348,13 +366,12 @@ export const deleteProductFromDB = async (productId: string): Promise<void> => {
   }
 
   try {
-    const cached = localStorage.getItem('tcv_products_v2');
+    const cached = localStorage.getItem(PRODUCTS_CACHE_KEY);
     if (cached) {
       let list: Product[] = JSON.parse(cached);
       list = list.filter(p => p.id !== productId);
       list = sortProductsBySequence(list);
-      localStorage.setItem('tcv_products_v2', JSON.stringify(list));
-      localStorage.setItem('tcv_admin_products', JSON.stringify(list));
+      localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(list));
     }
   } catch (err) {
     console.warn('Failed updating LocalStorage for deleted product:', err);
@@ -611,27 +628,19 @@ export const compressImage = (
 /**
  * Upload an image file dynamically to Firebase Storage with Canvas-compressed Base64 fallback
  */
+/**
+ * Upload an image file to Firebase Storage and return its permanent download URL.
+ *
+ * ⚠️  IMPORTANT: The old Base64 / Data URL fallback has been REMOVED.
+ * If Firebase Storage is unavailable, we throw immediately so the admin
+ * sees the error rather than silently storing a huge Data URL that
+ * Firestore will reject or that will break after a session ends.
+ */
 export const uploadImageFile = async (file: File, folder: string = 'uploads'): Promise<string> => {
-  try {
-    const filename = `${folder}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-    const storageRef = ref(storage, filename);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
-  } catch (err) {
-    console.warn('Firebase Storage upload failed or restricted, using canvas-compressed Data URL fallback:', err);
-    try {
-      const compressedDataUrl = await compressImage(file);
-      return compressedDataUrl;
-    } catch (compressErr) {
-      console.error('Image compression error, using raw FileReader fallback:', compressErr);
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (e) => reject(e);
-        reader.readAsDataURL(file);
-      });
-    }
-  }
+  const filename = `${folder}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+  const storageRef = ref(storage, filename);
+  const snapshot = await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(snapshot.ref);
+  return downloadURL;
 };
 
