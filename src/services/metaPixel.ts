@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export const META_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || '';
+export const META_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || '1416404950433932';
 
 /**
  * Initializes Meta Pixel snippet dynamically if Pixel ID is configured
